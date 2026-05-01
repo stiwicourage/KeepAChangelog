@@ -1,0 +1,39 @@
+{
+  "ProjectName": "KeepAChangelog",
+  "Description": "PowerShell helpers for creating, validating, and releasing Keep a Changelog files.",
+  "Version": "0.0.1",
+  "Preamble": [
+    "Set-StrictMode -Version Latest"
+  ],
+  "Manifest": {
+    "Author": "Stiwi Gabriel Courage",
+    "copyright": "Copyright (c) 2026 Stiwi Gabriel Courage",
+    "PowerShellHostVersion": "7.4",
+    "GUID": "58cf9260-13f2-4eb0-91f2-80b1a0c41f31",
+    "Tags": [
+      "PowerShell",
+      "KeepAChangelog",
+      "Changelog",
+      "ReleaseNotes"
+    ],
+    "ProjectUri": "https://github.com/stiwicourage/KeepAChangelog"
+  },
+  "Package": {
+    "Types": [
+      "NuGet"
+    ],
+    "OutputDirectory": {
+      "Path": "artifacts/packages",
+      "Clean": true
+    }
+  },
+  "Pester": {
+    "TestResult": {
+      "Enabled": true,
+      "OutputFormat": "NUnitXml"
+    },
+    "Output": {
+      "Verbosity": "Detailed"
+    }
+  }
+}
