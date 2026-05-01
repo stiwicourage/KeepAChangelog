@@ -22,7 +22,7 @@ Import-Module ./src/KeepAChangelog.psd1 -Force
 
 Available commands:
 
-- `New-KeepAChangelogFile`
+- `Initialize-KeepAChangelogFile`
 - `Test-KeepAChangelogFile`
 - `Publish-KeepAChangelogRelease`
 - `Convert-ChangelogReleaseNotesToTagMessage`
@@ -32,18 +32,18 @@ Available commands:
 Create a new changelog template:
 
 ```powershell
-New-KeepAChangelogFile `
+Initialize-KeepAChangelogFile `
     -Path ./CHANGELOG.md `
     -RepositoryUrl https://github.com/stiwicourage/KeepAChangelog
 ```
 
-Add `-PreviousReleaseReference` when the project already has a last released tag or ref:
+Add `-PreviousReleaseReference` when the project already has a last released tag, commit SHA, or a legitimate branch ref such as `main` or `develop`:
 
 ```powershell
-New-KeepAChangelogFile `
+Initialize-KeepAChangelogFile `
     -Path ./CHANGELOG.md `
     -RepositoryUrl https://github.com/stiwicourage/KeepAChangelog `
-    -PreviousReleaseReference 0.0.1
+    -PreviousReleaseReference develop
 ```
 
 Validate an existing changelog:

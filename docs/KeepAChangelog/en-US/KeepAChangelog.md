@@ -26,7 +26,7 @@ Use the module when you want a repeatable PowerShell workflow for:
 
 ## KeepAChangelog Cmdlets
 
-### `PS> New-KeepAChangelogFile`
+### `PS> Initialize-KeepAChangelogFile`
 
 Creates a changelog template with standard Keep a Changelog headings and the required `[Unreleased]` compare link.
 

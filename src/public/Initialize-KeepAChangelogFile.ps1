@@ -1,4 +1,4 @@
-function New-KeepAChangelogFile {
+function Initialize-KeepAChangelogFile {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Position = 0)]
@@ -46,7 +46,7 @@ function New-KeepAChangelogFile {
 
     $template = ($lineList -join "`n").TrimEnd() + "`n"
 
-    if (-not $PSCmdlet.ShouldProcess($Path, 'Create Keep a Changelog template')) {
+    if (-not $PSCmdlet.ShouldProcess($Path, 'Initialize Keep a Changelog template')) {
         return
     }
 

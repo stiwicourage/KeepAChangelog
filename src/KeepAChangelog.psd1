@@ -9,7 +9,7 @@
     PowerShellHostVersion = '7.4'
     FunctionsToExport = @(
         'Convert-ChangelogReleaseNotesToTagMessage'
-        'New-KeepAChangelogFile'
+        'Initialize-KeepAChangelogFile'
         'Publish-KeepAChangelogRelease'
         'Test-KeepAChangelogFile'
     )

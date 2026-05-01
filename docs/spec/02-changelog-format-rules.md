@@ -5,7 +5,7 @@
 Every managed changelog must contain:
 
 1. A top-level `## [Unreleased]` section.
-2. A footer reference link for `[Unreleased]`.
+2. A footer reference link for `[Unreleased]` once the changelog has a previous release reference or at least one released version.
 3. Versioned release headings in the form `## [<version>] - <date>`.
 
 ## Required compare link
@@ -20,6 +20,12 @@ When the compare link exists, the module extracts:
 
 - The compare-link prefix up to `/compare/`
 - The previous release reference between `/compare/` and `...HEAD`
+
+Valid previous release references include:
+
+- a release tag such as `1.0.0`
+- a commit SHA
+- a branch such as `main` or `develop`
 
 ## Release object contract
 

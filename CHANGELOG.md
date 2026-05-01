@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added the first PowerShell iteration for creating, validating, and releasing Keep a Changelog files.
 - Added numbered specification docs for changelog structure, formatting rules, and release behavior.
-- Allowed new changelog templates without `-PreviousReleaseReference` and added first-release footer generation when `Publish-KeepAChangelogRelease` receives `-RepositoryUrl`.
+- Renamed the changelog setup command to `Initialize-KeepAChangelogFile`, allowed it without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
 
 ### Changed
 
@@ -24,4 +24,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 
-[Unreleased]: https://github.com/couragedk/KeepAChangelog/compare/develop...HEAD
+[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/develop...HEAD

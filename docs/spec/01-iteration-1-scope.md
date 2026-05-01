@@ -13,7 +13,7 @@ The first iteration establishes the PowerShell foundation for Keep a Changelog a
 
 ## Public commands
 
-- `New-KeepAChangelogFile`
+- `Initialize-KeepAChangelogFile`
 - `Test-KeepAChangelogFile`
 - `Publish-KeepAChangelogRelease`
 - `Convert-ChangelogReleaseNotesToTagMessage`

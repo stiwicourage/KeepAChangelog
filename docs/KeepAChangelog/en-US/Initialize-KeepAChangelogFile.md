@@ -4,28 +4,28 @@ external help file: KeepAChangelog-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: KeepAChangelog
-ms.date: 04/30/2026
+ms.date: 05/02/2026
 PlatyPS schema version: 2024-05-01
-title: New-KeepAChangelogFile
+title: Initialize-KeepAChangelogFile
 ---
 
-# New-KeepAChangelogFile
+# Initialize-KeepAChangelogFile
 
 ## SYNOPSIS
 
-Creates a Keep a Changelog template.
+Initializes a Keep a Changelog template.
 
 ## SYNTAX
 
 ### __AllParameterSets
 
 ```text
-PS> New-KeepAChangelogFile [-Path <string>] -RepositoryUrl <string> [-PreviousReleaseReference <string>] [-SectionHeading <string[]>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+PS> Initialize-KeepAChangelogFile [-Path <string>] -RepositoryUrl <string> [-PreviousReleaseReference <string>] [-SectionHeading <string[]>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-`New-KeepAChangelogFile` writes a markdown changelog template with:
+`Initialize-KeepAChangelogFile` writes a markdown changelog template with:
 
 - the standard introduction text
 - a `## [Unreleased]` section
@@ -39,15 +39,15 @@ Use `-Force` when you want to overwrite an existing file.
 ### EXAMPLE 1
 
 ```text
-PS> New-KeepAChangelogFile -Path ./CHANGELOG.md -RepositoryUrl https://github.com/couragedk/KeepAChangelog -PreviousReleaseReference 0.0.1
+PS> Initialize-KeepAChangelogFile -Path ./CHANGELOG.md -RepositoryUrl https://github.com/couragedk/KeepAChangelog -PreviousReleaseReference develop
 ```
 
-Creates `CHANGELOG.md` in the current directory.
+Creates `CHANGELOG.md` with an `[Unreleased]` compare link that starts from `develop`.
 
 ### EXAMPLE 2
 
 ```text
-PS> New-KeepAChangelogFile -Path ./CHANGELOG.md -RepositoryUrl https://github.com/couragedk/KeepAChangelog
+PS> Initialize-KeepAChangelogFile -Path ./CHANGELOG.md -RepositoryUrl https://github.com/couragedk/KeepAChangelog
 ```
 
 Creates a brand-new changelog without footer links so the first release can add them later.
@@ -66,7 +66,7 @@ Repository base URL used to build compare links.
 
 Optional release reference used as the starting point for `[Unreleased]`.
 
-Omit this for a brand-new project that does not have a previous tag or release ref yet.
+Valid values include release tags, commit SHAs, and branch refs such as `main` or `develop`.
 
 ### -SectionHeading
 

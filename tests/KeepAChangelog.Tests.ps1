@@ -2,11 +2,11 @@ BeforeAll {
     Import-Module (Join-Path $PSScriptRoot '..' 'src' 'KeepAChangelog.psd1') -Force
 }
 
-Describe 'New-KeepAChangelogFile' {
+Describe 'Initialize-KeepAChangelogFile' {
     It 'creates a changelog template with standard headings and an Unreleased compare link when PreviousReleaseReference is provided' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
-        $result = New-KeepAChangelogFile `
+        $result = Initialize-KeepAChangelogFile `
             -Path $path `
             -RepositoryUrl 'https://github.com/example/repo' `
             -PreviousReleaseReference '1.0.0'
@@ -22,7 +22,7 @@ Describe 'New-KeepAChangelogFile' {
     It 'creates a changelog template without footer links when PreviousReleaseReference is omitted' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
-        $result = New-KeepAChangelogFile `
+        $result = Initialize-KeepAChangelogFile `
             -Path $path `
             -RepositoryUrl 'https://github.com/example/repo' `
             -Force
@@ -32,13 +32,31 @@ Describe 'New-KeepAChangelogFile' {
         $text | Should -Match '## \[Unreleased\]'
         $text | Should -Not -Match '(?m)^\[Unreleased\]:'
     }
+
+    It 'accepts develop as PreviousReleaseReference for projects without tags yet' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        $result = Initialize-KeepAChangelogFile `
+            -Path $path `
+            -RepositoryUrl 'https://github.com/example/repo' `
+            -PreviousReleaseReference 'develop' `
+            -Force
+        $text = Get-Content -LiteralPath $path -Raw
+
+        $result.PreviousReleaseReference | Should -Be 'develop'
+        $text | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/develop\.\.\.HEAD'
+    }
+
+    It 'does not export the old New-KeepAChangelogFile command name' {
+        { Get-Command -Name New-KeepAChangelogFile -ErrorAction Stop } | Should -Throw
+    }
 }
 
 Describe 'Test-KeepAChangelogFile' {
     It 'returns a valid result for a generated changelog file' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
-        New-KeepAChangelogFile `
+        Initialize-KeepAChangelogFile `
             -Path $path `
             -RepositoryUrl 'https://github.com/example/repo' `
             -PreviousReleaseReference '1.0.0' `
@@ -53,7 +71,7 @@ Describe 'Test-KeepAChangelogFile' {
     It 'returns a valid result for a brand-new changelog without footer links' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
-        New-KeepAChangelogFile `
+        Initialize-KeepAChangelogFile `
             -Path $path `
             -RepositoryUrl 'https://github.com/example/repo' `
             -Force | Out-Null
@@ -283,7 +301,7 @@ Describe 'Publish-KeepAChangelogRelease' {
     It 'requires release version, date, and tag' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
-        New-KeepAChangelogFile `
+        Initialize-KeepAChangelogFile `
             -Path $path `
             -RepositoryUrl 'https://github.com/example/repo' `
             -PreviousReleaseReference '1.0.0' `
