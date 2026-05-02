@@ -96,6 +96,10 @@ jobs:
           target-sha: ${{ steps.commit_release.outputs.commit-sha }}
           message: ${{ steps.semantic_release.outputs.tag_message }}
 
+      - name: Ensure PSGallery repository registration
+        if: github.ref_name == 'main' && steps.commit_release.outputs.has-changes == 'true'
+        uses: ./.github/actions/ensure-psresource-repository
+
       - name: Publish module to PSGallery
         if: github.ref_name == 'main' && steps.commit_release.outputs.has-changes == 'true'
         run: |
@@ -138,17 +142,21 @@ jobs:
           git fetch origin develop
           git checkout develop
 
-          $psResourcePath = Join-Path $HOME '.local/share/PSResourceGet'
-          New-Item -ItemType Directory -Path $psResourcePath -Force | Out-Null
+      - name: Ensure PSGallery repository registration
+        if: github.ref_name == 'develop'
+        uses: ./.github/actions/ensure-psresource-repository
 
-          if (-not (Get-PSResourceRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
-            Register-PSResourceRepository -PSGallery
-          }
-
+      - name: Publish develop prerelease to PSGallery
+        if: github.ref_name == 'develop'
+        run: |
           Publish-NovaModule -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration
-          Update-NovaModuleVersion -Preview -ContinuousIntegration -Verbose
         env:
           PSGALLERY_API: ${{ secrets.PSGALLERY_API }}
+
+      - name: Bump next prerelease version on develop
+        if: github.ref_name == 'develop'
+        run: |
+          Update-NovaModuleVersion -Preview -ContinuousIntegration -Verbose
 
       - name: Create verified develop commit
         id: commit_develop
