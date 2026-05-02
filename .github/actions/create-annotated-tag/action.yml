@@ -22,13 +22,17 @@ runs:
   steps:
     - id: create
       uses: actions/github-script@v7
+      env:
+        TAG_NAME: ${{ inputs.tag-name }}
+        TARGET_SHA: ${{ inputs.target-sha }}
+        TAG_MESSAGE: ${{ inputs.message }}
       with:
         script: |
           const owner = context.repo.owner
           const repo = context.repo.repo
-          const tagName = core.getInput('tag-name')
-          const targetSha = core.getInput('target-sha')
-          const message = core.getInput('message')
+          const tagName = process.env.TAG_NAME
+          const targetSha = process.env.TARGET_SHA
+          const message = process.env.TAG_MESSAGE
 
           try {
             await github.rest.git.getRef({

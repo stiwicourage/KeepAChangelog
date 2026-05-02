@@ -25,6 +25,9 @@ runs:
   steps:
     - id: create
       uses: actions/github-script@v7
+      env:
+        BASE_REF: ${{ inputs.base-ref }}
+        COMMIT_MESSAGE: ${{ inputs.commit-message }}
       with:
         script: |
           const fs = require('fs')
@@ -32,9 +35,9 @@ runs:
 
           const owner = context.repo.owner
           const repo = context.repo.repo
-          const baseRefInput = core.getInput('base-ref')
+          const baseRefInput = process.env.BASE_REF
           const baseRef = baseRefInput.replace(/^refs\/heads\//, '')
-          const commitMessage = core.getInput('commit-message')
+          const commitMessage = process.env.COMMIT_MESSAGE
 
           const statusLines = execSync('git status --porcelain=v1 --untracked-files=all', {
             encoding: 'utf-8'
