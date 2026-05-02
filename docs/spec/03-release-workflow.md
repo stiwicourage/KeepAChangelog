@@ -35,6 +35,8 @@ The release workflow should expose or compute these values:
 - `NewReleaseLink`
 - `TagMessageText`
 
+The public command should accept `-Version` and optional `-Date`, then derive `Release.Tag` from `Version`.
+
 ## Tag-message rules
 
 `Convert-ChangelogReleaseNotesToTagMessage` must:

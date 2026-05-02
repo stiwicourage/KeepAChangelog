@@ -15,7 +15,7 @@ The first iteration establishes the PowerShell foundation for Keep a Changelog a
 
 - `Initialize-KeepAChangelogFile`
 - `Test-KeepAChangelogFile`
-- `Publish-KeepAChangelogRelease`
+- `Move-UnreleasedChangelog`
 - `Convert-ChangelogReleaseNotesToTagMessage`
 
 ## Non-goals for iteration 1

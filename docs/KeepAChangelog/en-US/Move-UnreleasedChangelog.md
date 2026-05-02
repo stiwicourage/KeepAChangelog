@@ -4,28 +4,28 @@ external help file: KeepAChangelog-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: KeepAChangelog
-ms.date: 04/30/2026
+ms.date: 05/02/2026
 PlatyPS schema version: 2024-05-01
-title: Publish-KeepAChangelogRelease
+title: Move-UnreleasedChangelog
 ---
 
-# Publish-KeepAChangelogRelease
+# Move-UnreleasedChangelog
 
 ## SYNOPSIS
 
-Promotes `Unreleased` notes into a versioned release section.
+Moves `Unreleased` notes into a versioned release section.
 
 ## SYNTAX
 
 ### __AllParameterSets
 
 ```text
-PS> Publish-KeepAChangelogRelease [-Path <string>] -Release <hashtable> [-RepositoryUrl <string>] [-WhatIf] [-Confirm] [<CommonParameters>]
+PS> Move-UnreleasedChangelog [-Path <string>] -Version <string> [-Date <string>] [-RepositoryUrl <string>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-`Publish-KeepAChangelogRelease` treats `## [Unreleased]` as the source section for the next release.
+`Move-UnreleasedChangelog` treats `## [Unreleased]` as the source section for the next release.
 
 The command:
 
@@ -36,16 +36,16 @@ The command:
 5. updates the `[Unreleased]` compare link to `<tag>...HEAD`
 6. adds or updates the `[<version>]` release link from the previous release reference to the new tag
 
-If the changelog has no footer yet because it started as a brand-new project, pass `-RepositoryUrl` on the first release so the footer links can be created.
+`-Version` is required. `-Date` is optional. When `-Date` is omitted, the current date is used. When `-Date` is provided, it must use `yyyy-MM-dd` format.
 
-The `Release` hashtable must contain `Version`, `Date`, and `Tag`.
+If the changelog has no footer yet because it started as a brand-new project, pass `-RepositoryUrl` on the first release so the footer links can be created.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 
 ```text
-PS> Publish-KeepAChangelogRelease -Path ./CHANGELOG.md -Release @{ Version = '1.6.0'; Date = '2026-04-30'; Tag = '1.6.0' }
+PS> Move-UnreleasedChangelog -Path ./CHANGELOG.md -Version 1.6.0 -Date 2026-04-30
 ```
 
 Promotes the current unreleased notes into release `1.6.0`.
@@ -53,7 +53,7 @@ Promotes the current unreleased notes into release `1.6.0`.
 ### EXAMPLE 2
 
 ```text
-PS> Publish-KeepAChangelogRelease -Path ./CHANGELOG.md -Release @{ Version = '1.0.0'; Date = '2026-05-01'; Tag = '1.0.0' } -RepositoryUrl https://github.com/couragedk/KeepAChangelog
+PS> Move-UnreleasedChangelog -Path ./CHANGELOG.md -Version 1.0.0 -RepositoryUrl https://github.com/couragedk/KeepAChangelog
 ```
 
 Creates the first release and adds the initial footer links for a changelog that did not have a previous release reference.
@@ -64,9 +64,13 @@ Creates the first release and adds the initial footer links for a changelog that
 
 Target changelog path. Defaults to `CHANGELOG.md`.
 
-### -Release
+### -Version
 
-Hashtable with `Version`, `Date`, and `Tag`.
+Release version. The same value is also used as the release tag.
+
+### -Date
+
+Optional release date in `yyyy-MM-dd` format.
 
 ### -RepositoryUrl
 

@@ -34,7 +34,7 @@ Creates a changelog template with standard Keep a Changelog headings and the req
 
 Validates that a changelog contains the required `## [Unreleased]` section, reference links, and release-heading format.
 
-### `PS> Publish-KeepAChangelogRelease`
+### `PS> Move-UnreleasedChangelog`
 
 Moves the current `Unreleased` content into a versioned release section and updates compare links.
 

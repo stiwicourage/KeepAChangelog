@@ -10,7 +10,7 @@
     FunctionsToExport = @(
         'Convert-ChangelogReleaseNotesToTagMessage'
         'Initialize-KeepAChangelogFile'
-        'Publish-KeepAChangelogRelease'
+        'Move-UnreleasedChangelog'
         'Test-KeepAChangelogFile'
     )
     CmdletsToExport   = @()

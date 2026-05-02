@@ -128,7 +128,7 @@ Describe 'Test-KeepAChangelogFile' {
     }
 }
 
-Describe 'Publish-KeepAChangelogRelease' {
+Describe 'Move-UnreleasedChangelog' {
     It 'moves unreleased notes into a release section, clears Unreleased, and updates compare links' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
@@ -153,13 +153,7 @@ Describe 'Publish-KeepAChangelogRelease' {
 [1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0
 '@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        $release = @{
-            Version = '1.6.0'
-            Date    = '2026-04-30'
-            Tag     = '1.6.0'
-        }
-
-        $result = Publish-KeepAChangelogRelease -Path $path -Release $release
+        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30'
         $updated = Get-Content -LiteralPath $path -Raw
 
         $result.ReleaseNotesBody | Should -Be "### Fixed`n`n- Fixed CLI parsing."
@@ -192,13 +186,7 @@ Describe 'Publish-KeepAChangelogRelease' {
 [1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0
 '@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        $release = @{
-            Version = '1.6.0'
-            Date    = '2026-04-30'
-            Tag     = '1.6.0'
-        }
-
-        $result = Publish-KeepAChangelogRelease -Path $path -Release $release
+        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30'
         $updated = Get-Content -LiteralPath $path -Raw
 
         $result.ReleaseNotesBody | Should -Be '- Fixed CLI parsing.'
@@ -230,11 +218,7 @@ Describe 'Publish-KeepAChangelogRelease' {
 [1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0
 '@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        Publish-KeepAChangelogRelease -Path $path -Release @{
-            Version = '1.6.0'
-            Date    = '2026-04-30'
-            Tag     = '1.6.0'
-        } | Out-Null
+        Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30' | Out-Null
 
         $updated = Get-Content -LiteralPath $path -Raw
 
@@ -254,13 +238,10 @@ Describe 'Publish-KeepAChangelogRelease' {
 - Initial release notes.
 '@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        $result = Publish-KeepAChangelogRelease `
+        $result = Move-UnreleasedChangelog `
             -Path $path `
-            -Release @{
-                Version = '1.0.0'
-                Date    = '2026-05-01'
-                Tag     = '1.0.0'
-            } `
+            -Version '1.0.0' `
+            -Date '2026-05-01' `
             -RepositoryUrl 'https://github.com/example/repo'
         $updated = Get-Content -LiteralPath $path -Raw
 
@@ -286,11 +267,7 @@ Describe 'Publish-KeepAChangelogRelease' {
 '@ | Set-Content -LiteralPath $path -Encoding utf8
 
         try {
-            Publish-KeepAChangelogRelease -Path $path -Release @{
-                Version = '1.0.0'
-                Date    = '2026-05-01'
-                Tag     = '1.0.0'
-            }
+            Move-UnreleasedChangelog -Path $path -Version '1.0.0' -Date '2026-05-01'
         } catch {
             $errorMessage = $_.Exception.Message
         }
@@ -298,7 +275,23 @@ Describe 'Publish-KeepAChangelogRelease' {
         $errorMessage | Should -Be 'RepositoryUrl is required for the first release when CHANGELOG.md has no [Unreleased] compare link.'
     }
 
-    It 'requires release version, date, and tag' {
+    It 'uses the version as the tag and the current date when Date is omitted' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+        $currentDate = Get-Date -Format 'yyyy-MM-dd'
+
+        Initialize-KeepAChangelogFile `
+            -Path $path `
+            -RepositoryUrl 'https://github.com/example/repo' `
+            -PreviousReleaseReference '1.0.0' `
+            -Force | Out-Null
+
+        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0'
+
+        $result.Release.Tag | Should -Be '1.6.0'
+        $result.Release.Date | Should -Be $currentDate
+    }
+
+    It 'rejects an explicit Date with the wrong format' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
         Initialize-KeepAChangelogFile `
@@ -308,11 +301,8 @@ Describe 'Publish-KeepAChangelogRelease' {
             -Force | Out-Null
 
         {
-            Publish-KeepAChangelogRelease -Path $path -Release @{
-                Version = '1.6.0'
-                Date    = '2026-04-30'
-            }
-        } | Should -Throw 'Release.Tag is required.'
+            Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '05-02-2026'
+        } | Should -Throw "Date must use yyyy-MM-dd format. Received: '05-02-2026'."
     }
 }
 

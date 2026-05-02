@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an improvement for NovaModuleTools or the nova CLI.
+description: Suggest an improvement for KeepAChangelog or the nova CLI.
 title: "[Feature]: "
 labels:
   - enhancement
@@ -111,7 +111,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Current NovaModuleTools version
+      label: Current KeepAChangelog version
       description: Optional, but helpful if the request is tied to a specific version.
       placeholder: 2.0.0-prerelease4
 

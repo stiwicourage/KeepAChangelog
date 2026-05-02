@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the first PowerShell iteration for creating, validating, and releasing Keep a Changelog files.
 - Added numbered specification docs for changelog structure, formatting rules, and release behavior.
 - Renamed the changelog setup command to `Initialize-KeepAChangelogFile`, allowed it without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
+- Renamed the release command to `Move-UnreleasedChangelog`, made `-Version` the required release input, and made `-Date` optional with `yyyy-MM-dd` validation.
 
 ### Changed
 

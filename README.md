@@ -24,7 +24,7 @@ Available commands:
 
 - `Initialize-KeepAChangelogFile`
 - `Test-KeepAChangelogFile`
-- `Publish-KeepAChangelogRelease`
+- `Move-UnreleasedChangelog`
 - `Convert-ChangelogReleaseNotesToTagMessage`
 
 ## Examples
@@ -57,20 +57,19 @@ $result.Errors
 Promote `Unreleased` notes into a release:
 
 ```powershell
-$Release = @{
-    Version = '1.6.0'
-    Date    = '2026-04-30'
-    Tag     = '1.6.0'
-}
-
-Publish-KeepAChangelogRelease -Path ./CHANGELOG.md -Release $Release
+Move-UnreleasedChangelog `
+    -Path ./CHANGELOG.md `
+    -Version 1.6.0 `
+    -Date 2026-04-30
 ```
+
+If you omit `-Date`, the command uses the current date in `yyyy-MM-dd` format. If you pass `-Date`, it must use `yyyy-MM-dd`.
 
 If this is the first release and the changelog was created without `-PreviousReleaseReference`, pass `-RepositoryUrl` so the first footer links can be added:
 
 ```powershell
-Publish-KeepAChangelogRelease `
+Move-UnreleasedChangelog `
     -Path ./CHANGELOG.md `
-    -Release $Release `
+    -Version 1.0.0 `
     -RepositoryUrl https://github.com/stiwicourage/KeepAChangelog
 ```

@@ -27,19 +27,19 @@ Valid previous release references include:
 - a commit SHA
 - a branch such as `main` or `develop`
 
-## Release object contract
+## Release parameter contract
 
-Release promotion requires a hashtable with all three values:
+Release promotion requires:
 
 ```powershell
-$Release = @{
-    Version = '1.6.0'
-    Date    = '2026-04-30'
-    Tag     = '1.6.0'
-}
+Move-UnreleasedChangelog -Version '1.6.0' -Date '2026-04-30'
 ```
 
-If `Version`, `Date`, or `Tag` is missing or empty, the release command must fail.
+- `Version` is required
+- `Date` is optional
+- `Tag` is derived from `Version`
+- when `Date` is omitted, the current date is used
+- when `Date` is provided, it must use `yyyy-MM-dd`
 
 For a first release without an existing footer compare link, the release command needs a repository URL so it can add the initial footer links.
 

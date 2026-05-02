@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible problem in NovaModuleTools or the nova CLI.
+description: Report a reproducible problem in KeepAChangelog or the nova CLI.
 title: "[Bug]: "
 labels:
   - bug
@@ -51,8 +51,8 @@ body:
   - type: input
     id: module-version
     attributes:
-      label: NovaModuleTools version
-      description: For example `1.9.0`, `2.0.0-prerelease4`, or the output from `nova --version`.
+      label: KeepAChangelog version
+      description: For example `1.9.0`, `2.0.0-prerelease4`, or the output from `PS> Get-KeepAChangelogVersion`.
       placeholder: 2.0.0-prerelease4
     validations:
       required: true
