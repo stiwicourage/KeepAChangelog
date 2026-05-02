@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- Fixed the publish workflow so PSGallery publishing initializes the PSResourceGet repository store before `Publish-NovaModule` runs on both `main` and `develop`.
 
 ### Security
 
