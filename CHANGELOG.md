@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Restored numbered iteration specs to `docs/spec/` and kept PlatyPS help under `docs/KeepAChangelog/en-US/` for the updated Nova build workflow.
+- Fixed CI coverage collection so source-based tests measure the source module directly instead of reporting 0% from the built module path.
 
 ### Security
 
