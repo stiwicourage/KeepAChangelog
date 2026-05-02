@@ -27,4 +27,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Created command `Move-UnreleasedChangelog`, `-Version` is required release input, and `-Date` is optional with `yyyy-MM-dd` validation.
 
 [Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.1...HEAD
-[0.1.1]: https://github.com/stiwicourage/KeepAChangelog/compare/develop...0.1.1
+[0.1.1]: https://github.com/stiwicourage/KeepAChangelog/compare/103d84a...0.1.1
