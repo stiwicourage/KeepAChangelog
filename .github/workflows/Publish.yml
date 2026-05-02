@@ -61,7 +61,7 @@ jobs:
         if: github.ref_name == 'main'
         run: |
           Update-NovaModuleVersion -ContinuousIntegration -Verbose
-          $version = Get-NovaModuleVersion
+          $version = Get-NovaProjectInfo -Version
           $result = Move-UnreleasedChangelog -Version $version
 
           "release_version=$version" >> $env:GITHUB_OUTPUT
