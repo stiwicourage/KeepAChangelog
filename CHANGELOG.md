@@ -8,10 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added the first PowerShell iteration for creating, validating, and releasing Keep a Changelog files.
-- Added numbered specification docs for changelog structure, formatting rules, and release behavior.
-- Renamed the changelog setup command to `Initialize-KeepAChangelogFile`, allowed it without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
-- Renamed the release command to `Move-UnreleasedChangelog`, made `-Version` the required release input, and made `-Date` optional with `yyyy-MM-dd` validation.
+- Created command `Initialize-KeepAChangelogFile`, allowed without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
+- Created command `Move-UnreleasedChangelog`, `-Version` is required release input, and `-Date` is optional with `yyyy-MM-dd` validation.
 
 ### Changed
 
@@ -20,8 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
-- Restored numbered iteration specs to `docs/spec/` and kept PlatyPS help under `docs/KeepAChangelog/en-US/` for the updated Nova build workflow.
-- Fixed CI coverage collection so source-based tests measure the source module directly instead of reporting 0% from the built module path.
 
 ### Security
 
