@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
-- Changed CI so pull requests now run a dedicated CodeScene coverage-gate check against a Cobertura report generated from the built module and remapped back to `src/`, while keeping the existing develop/manual coverage upload and analysis flow.
+- Changed CI so pull requests now run a dedicated CodeScene coverage-gate check against a Cobertura report generated from the built module, remapped back to `src/`, and validated against the full module source surface, while keeping the existing develop/manual coverage upload and analysis flow.
 
 ### Deprecated
 
