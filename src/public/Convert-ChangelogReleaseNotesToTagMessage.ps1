@@ -1,3 +1,50 @@
+function Add-ChangelogTagMessageBlankLine {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [object]$LineList,
+        [Parameter(Mandatory)]
+        [bool]$AllowBlankLine
+    )
+
+    if (-not $AllowBlankLine -or $LineList.Count -eq 0) {
+        return $false
+    }
+
+    $LineList.Add('')
+    return $false
+}
+
+function Get-ChangelogTagMessageLine {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$TrimmedLine
+    )
+
+    if ($TrimmedLine -match '^###\s+(?<value>.+)$') {
+        return $Matches.value
+    }
+
+    if ($TrimmedLine -match '^(?:-|\*)\s+(?<value>.+)$') {
+        return $Matches.value
+    }
+
+    return $TrimmedLine
+}
+
+function Remove-ChangelogTagMessageTrailingBlanks {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [object]$LineList
+    )
+
+    while ($LineList.Count -gt 0 -and [string]::IsNullOrWhiteSpace($LineList[$LineList.Count - 1])) {
+        $LineList.RemoveAt($LineList.Count - 1)
+    }
+}
+
 function Convert-ChangelogReleaseNotesToTagMessage {
     [CmdletBinding()]
     param(
@@ -13,33 +60,14 @@ function Convert-ChangelogReleaseNotesToTagMessage {
         $trimmedLine = $line.Trim()
 
         if ([string]::IsNullOrWhiteSpace($trimmedLine)) {
-            if ($allowBlankLine -and $lineList.Count -gt 0) {
-                $lineList.Add('')
-                $allowBlankLine = $false
-            }
-
+            $allowBlankLine = Add-ChangelogTagMessageBlankLine -LineList $lineList -AllowBlankLine $allowBlankLine
             continue
         }
 
-        if ($trimmedLine -match '^###\s+(?<value>.+)$') {
-            $lineList.Add($Matches.value)
-            $allowBlankLine = $true
-            continue
-        }
-
-        if ($trimmedLine -match '^(?:-|\*)\s+(?<value>.+)$') {
-            $lineList.Add($Matches.value)
-            $allowBlankLine = $true
-            continue
-        }
-
-        $lineList.Add($trimmedLine)
+        $lineList.Add((Get-ChangelogTagMessageLine -TrimmedLine $trimmedLine))
         $allowBlankLine = $true
     }
 
-    while ($lineList.Count -gt 0 -and [string]::IsNullOrWhiteSpace($lineList[$lineList.Count - 1])) {
-        $lineList.RemoveAt($lineList.Count - 1)
-    }
-
+    Remove-ChangelogTagMessageTrailingBlanks -LineList $lineList
     return ($lineList -join "`n").Trim()
 }

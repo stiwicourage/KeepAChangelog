@@ -1,24 +1,9 @@
-function Get-UpdatedChangelogReferenceFooter {
+function Get-ChangelogReferenceLinkData {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [AllowEmptyString()]
-        [string]$Footer,
-
-        [Parameter(Mandatory)]
-        [string]$ReleaseVersion,
-
-        [Parameter(Mandatory)]
-        [string]$ReleaseTag,
-
-        [Parameter(Mandatory)]
-        [string]$UnreleasedCompareLinkPrefix,
-
-        [Parameter(Mandatory)]
-        [AllowEmptyString()]
-        [string]$PreviousReleaseReference,
-
-        [string]$RepositoryUrl
+        [string]$Footer
     )
 
     $orderedLabelList = [System.Collections.Generic.List[string]]::new()
@@ -35,29 +20,100 @@ function Get-UpdatedChangelogReferenceFooter {
         $linkMap[$label] = $url
     }
 
-    if (-not $linkMap.Contains('Unreleased')) {
-        $orderedLabelList.Insert(0, 'Unreleased')
+    return [pscustomobject]@{
+        OrderedLabelList = $orderedLabelList
+        LinkMap          = $linkMap
+    }
+}
+
+function Get-NormalizedChangelogRepositoryUrl {
+    [CmdletBinding()]
+    param(
+        [string]$RepositoryUrl,
+        [Parameter(Mandatory)]
+        [string]$UnreleasedCompareLinkPrefix
+    )
+
+    if ([string]::IsNullOrWhiteSpace($RepositoryUrl)) {
+        return ($UnreleasedCompareLinkPrefix -replace '/compare/$', '')
     }
 
-    $normalizedRepositoryUrl = if ([string]::IsNullOrWhiteSpace($RepositoryUrl)) {
-        $UnreleasedCompareLinkPrefix -replace '/compare/$', ''
-    } else {
-        $RepositoryUrl.TrimEnd('/')
+    return $RepositoryUrl.TrimEnd('/')
+}
+
+function Get-ChangelogReleaseLink {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$RepositoryUrl,
+        [Parameter(Mandatory)]
+        [string]$UnreleasedCompareLinkPrefix,
+        [AllowEmptyString()]
+        [string]$PreviousReleaseReference,
+        [Parameter(Mandatory)]
+        [string]$ReleaseTag
+    )
+
+    if ([string]::IsNullOrWhiteSpace($PreviousReleaseReference)) {
+        return "$RepositoryUrl/releases/tag/$ReleaseTag"
     }
-    $updatedUnreleasedLink = "$UnreleasedCompareLinkPrefix$ReleaseTag...HEAD"
-    $newReleaseLink = if ([string]::IsNullOrWhiteSpace($PreviousReleaseReference)) {
-        "$normalizedRepositoryUrl/releases/tag/$ReleaseTag"
-    } else {
-        "$UnreleasedCompareLinkPrefix$PreviousReleaseReference...$ReleaseTag"
+
+    return "$UnreleasedCompareLinkPrefix$PreviousReleaseReference...$ReleaseTag"
+}
+
+function Add-ChangelogReferenceLabel {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [System.Collections.Generic.List[string]]$OrderedLabelList,
+        [Parameter(Mandatory)]
+        [hashtable]$LinkMap,
+        [Parameter(Mandatory)]
+        [string]$Label
+    )
+
+    if ($LinkMap.Contains($Label)) {
+        return
     }
+
+    $OrderedLabelList.Insert($OrderedLabelList.IndexOf('Unreleased') + 1, $Label)
+}
+
+function Get-UpdatedChangelogReferenceFooter {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyString()]
+        [string]$Footer,
+
+        [Parameter(Mandatory)]
+        [pscustomobject]$Release,
+
+        [Parameter(Mandatory)]
+        [pscustomobject]$Context
+    )
+
+    $referenceLinkData = Get-ChangelogReferenceLinkData -Footer $Footer
+    $orderedLabelList = $referenceLinkData.OrderedLabelList
+    $linkMap = $referenceLinkData.LinkMap
+
+    if (-not $linkMap.Contains('Unreleased')) {
+        $orderedLabelList.Add('Unreleased')
+    }
+
+    $normalizedRepositoryUrl = Get-NormalizedChangelogRepositoryUrl `
+        -RepositoryUrl $Context.RepositoryUrl `
+        -UnreleasedCompareLinkPrefix $Context.UnreleasedCompareLinkPrefix
+    $updatedUnreleasedLink = "$($Context.UnreleasedCompareLinkPrefix)$($Release.Tag)...HEAD"
+    $newReleaseLink = Get-ChangelogReleaseLink `
+        -RepositoryUrl $normalizedRepositoryUrl `
+        -UnreleasedCompareLinkPrefix $Context.UnreleasedCompareLinkPrefix `
+        -PreviousReleaseReference $Context.PreviousReleaseReference `
+        -ReleaseTag $Release.Tag
     $linkMap['Unreleased'] = $updatedUnreleasedLink
 
-    if (-not $linkMap.Contains($ReleaseVersion)) {
-        $unreleasedIndex = $orderedLabelList.IndexOf('Unreleased')
-        $orderedLabelList.Insert($unreleasedIndex + 1, $ReleaseVersion)
-    }
-
-    $linkMap[$ReleaseVersion] = $newReleaseLink
+    Add-ChangelogReferenceLabel -OrderedLabelList $orderedLabelList -LinkMap $linkMap -Label $Release.Version
+    $linkMap[$Release.Version] = $newReleaseLink
 
     $footerLineList = foreach ($label in $orderedLabelList) {
         "[$label]: $($linkMap[$label])"

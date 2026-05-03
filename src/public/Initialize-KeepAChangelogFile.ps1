@@ -1,3 +1,81 @@
+function Assert-KeepAChangelogInitialization {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+        [Parameter(Mandatory)]
+        [string]$RepositoryUrl,
+        [Parameter(Mandatory)]
+        [bool]$Force
+    )
+
+    if ([string]::IsNullOrWhiteSpace($RepositoryUrl)) {
+        throw 'RepositoryUrl is required.'
+    }
+
+    if ((Test-Path -LiteralPath $Path) -and -not $Force) {
+        throw "File already exists at '$Path'. Use -Force to overwrite it."
+    }
+}
+
+function Get-KeepAChangelogHeadingLines {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$SectionHeading
+    )
+
+    return @(
+        foreach ($heading in $SectionHeading) {
+            "### $heading"
+            ''
+        }
+    )
+}
+
+function Get-KeepAChangelogFooterLine {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$RepositoryUrl,
+        [string]$PreviousReleaseReference
+    )
+
+    if ([string]::IsNullOrWhiteSpace($PreviousReleaseReference)) {
+        return $null
+    }
+
+    return "[Unreleased]: $RepositoryUrl/compare/$PreviousReleaseReference...HEAD"
+}
+
+function New-KeepAChangelogTemplate {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$RepositoryUrl,
+        [string]$PreviousReleaseReference,
+        [Parameter(Mandatory)]
+        [string[]]$SectionHeading
+    )
+
+    $footerLine = Get-KeepAChangelogFooterLine -RepositoryUrl $RepositoryUrl -PreviousReleaseReference $PreviousReleaseReference
+    $lineList = @(
+        '# Changelog'
+        ''
+        'All notable changes to this project will be documented in this file.'
+        ''
+        'The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),'
+        'and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).'
+        ''
+        '## [Unreleased]'
+        ''
+        (Get-KeepAChangelogHeadingLines -SectionHeading $SectionHeading)
+        $footerLine
+    ) | Where-Object { $null -ne $_ }
+
+    return (($lineList -join "`n").TrimEnd() + "`n")
+}
+
 function Initialize-KeepAChangelogFile {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
@@ -14,37 +92,12 @@ function Initialize-KeepAChangelogFile {
         [switch]$Force
     )
 
-    if ([string]::IsNullOrWhiteSpace($RepositoryUrl)) {
-        throw 'RepositoryUrl is required.'
-    }
-
-    if ((Test-Path -LiteralPath $Path) -and -not $Force) {
-        throw "File already exists at '$Path'. Use -Force to overwrite it."
-    }
-
+    Assert-KeepAChangelogInitialization -Path $Path -RepositoryUrl $RepositoryUrl -Force $Force.IsPresent
     $normalizedRepositoryUrl = $RepositoryUrl.TrimEnd('/')
-    $hasPreviousReleaseReference = -not [string]::IsNullOrWhiteSpace($PreviousReleaseReference)
-    $lineList = [System.Collections.Generic.List[string]]::new()
-    $lineList.Add('# Changelog')
-    $lineList.Add('')
-    $lineList.Add('All notable changes to this project will be documented in this file.')
-    $lineList.Add('')
-    $lineList.Add('The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),')
-    $lineList.Add('and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).')
-    $lineList.Add('')
-    $lineList.Add('## [Unreleased]')
-    $lineList.Add('')
-
-    foreach ($heading in $SectionHeading) {
-        $lineList.Add("### $heading")
-        $lineList.Add('')
-    }
-
-    if ($hasPreviousReleaseReference) {
-        $lineList.Add("[Unreleased]: $normalizedRepositoryUrl/compare/$PreviousReleaseReference...HEAD")
-    }
-
-    $template = ($lineList -join "`n").TrimEnd() + "`n"
+    $template = New-KeepAChangelogTemplate `
+        -RepositoryUrl $normalizedRepositoryUrl `
+        -PreviousReleaseReference $PreviousReleaseReference `
+        -SectionHeading $SectionHeading
 
     if (-not $PSCmdlet.ShouldProcess($Path, 'Initialize Keep a Changelog template')) {
         return
@@ -55,6 +108,6 @@ function Initialize-KeepAChangelogFile {
     return [pscustomobject]@{
         Path                     = $Path
         RepositoryUrl            = $normalizedRepositoryUrl
-        PreviousReleaseReference = if ($hasPreviousReleaseReference) { $PreviousReleaseReference } else { $null }
+        PreviousReleaseReference = if ([string]::IsNullOrWhiteSpace($PreviousReleaseReference)) { $null } else { $PreviousReleaseReference }
     }
 }

@@ -145,10 +145,15 @@ Describe 'Private helper coverage' {
         InModuleScope KeepAChangelog {
             $result = Get-UpdatedChangelogReferenceFooter `
                 -Footer '' `
-                -ReleaseVersion '1.0.0' `
-                -ReleaseTag '1.0.0' `
-                -UnreleasedCompareLinkPrefix 'https://github.com/example/repo/compare/' `
-                -PreviousReleaseReference ''
+                -Release ([pscustomobject]@{
+                    Version = '1.0.0'
+                    Tag     = '1.0.0'
+                }) `
+                -Context ([pscustomobject]@{
+                    RepositoryUrl               = $null
+                    UnreleasedCompareLinkPrefix = 'https://github.com/example/repo/compare/'
+                    PreviousReleaseReference    = ''
+                })
 
             $result.Footer | Should -Be "[Unreleased]: https://github.com/example/repo/compare/1.0.0...HEAD`n[1.0.0]: https://github.com/example/repo/releases/tag/1.0.0"
         }
