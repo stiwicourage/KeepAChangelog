@@ -73,26 +73,31 @@ Describe 'Public command guard clauses' {
 }
 
 Describe 'Private helper coverage' {
-    It 'throws when a required release key is missing' {
+    It 'validates required release fields' {
         InModuleScope KeepAChangelog {
-            {
-                Assert-KeepAChangelogRelease -Release @{
-                    Version = '1.0.0'
-                    Tag     = '1.0.0'
+            $caseList = @(
+                @{
+                    Release = @{
+                        Version = '1.0.0'
+                        Tag     = '1.0.0'
+                    }
+                    ExpectedMessage = 'Release.Date is required.'
                 }
-            } | Should -Throw 'Release.Date is required.'
-        }
-    }
+                @{
+                    Release = @{
+                        Version = '1.0.0'
+                        Date    = '2026-05-03'
+                        Tag     = '   '
+                    }
+                    ExpectedMessage = 'Release.Tag is required.'
+                }
+            )
 
-    It 'throws when a required release value is blank' {
-        InModuleScope KeepAChangelog {
-            {
-                Assert-KeepAChangelogRelease -Release @{
-                    Version = '1.0.0'
-                    Date    = '2026-05-03'
-                    Tag     = '   '
-                }
-            } | Should -Throw 'Release.Tag is required.'
+            foreach ($case in $caseList) {
+                {
+                    Assert-KeepAChangelogRelease -Release $case.Release
+                } | Should -Throw $case.ExpectedMessage
+            }
         }
     }
 
