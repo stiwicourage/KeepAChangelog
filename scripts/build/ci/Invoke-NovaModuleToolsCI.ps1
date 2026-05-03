@@ -5,6 +5,8 @@ param(
 
 Set-StrictMode -Version Latest
 
+. (Join-Path $PSScriptRoot 'CodeSceneCoverageMap.ps1')
+. (Join-Path $PSScriptRoot 'CodeSceneCoverageXml.ps1')
 . (Join-Path $PSScriptRoot 'CoverageLowReport.ps1')
 
 function Get-CiTestPath {
@@ -24,11 +26,6 @@ function Get-CiPesterConfiguration {
         [string[]]$ExcludedTags = @()
     )
 
-    $sourceModulePath = Join-Path $ProjectInfo.ProjectRoot 'src' "$($ProjectInfo.ProjectName).psm1"
-    if (-not (Test-Path -LiteralPath $sourceModulePath)) {
-        throw "Could not find source module file for coverage at '$sourceModulePath'."
-    }
-
     $configuration = New-PesterConfiguration
     $configuration.Run.Path = Get-CiTestPath -ProjectInfo $ProjectInfo
     $configuration.Run.PassThru = $true
@@ -37,7 +34,7 @@ function Get-CiPesterConfiguration {
     $configuration.TestResult.OutputFormat = 'JUnitXml'
     $configuration.TestResult.OutputPath = (Join-Path $ArtifactsDirectory 'pester-junit.xml')
     $configuration.CodeCoverage.Enabled = $true
-    $configuration.CodeCoverage.Path = @($sourceModulePath)
+    $configuration.CodeCoverage.Path = @($ProjectInfo.ModuleFilePSM1)
     $configuration.CodeCoverage.OutputFormat = 'Cobertura'
     $configuration.CodeCoverage.OutputPath = (Join-Path $ArtifactsDirectory 'pester-coverage.cobertura.xml')
 
@@ -55,8 +52,13 @@ Invoke-NovaBuild
 
 $projectInfo = Get-NovaProjectInfo
 
+if (-not $projectInfo.SetSourcePath) {
+    throw 'Code coverage upload requires project.json to set SetSourcePath=true so dist coverage can be remapped back to src files for CodeScene.'
+}
+
 $configuration = Get-CiPesterConfiguration -ProjectInfo $projectInfo -ArtifactsDirectory $OutputDirectory -ExcludedTags $ExcludeTag
 $result = Invoke-Pester -Configuration $configuration
+Convert-CoberturaCoverageToSourcePath -CoveragePath (Join-Path $OutputDirectory 'pester-coverage.cobertura.xml') -BuiltModulePath $projectInfo.ModuleFilePSM1 -RepoRoot $projectInfo.ProjectRoot
 Write-CoverageLowReport -CoveragePath (Join-Path $OutputDirectory 'pester-coverage.cobertura.xml') -OutputPath (Join-Path $OutputDirectory 'coverage-low.txt')
 
 if ($result.FailedCount -gt 0) {

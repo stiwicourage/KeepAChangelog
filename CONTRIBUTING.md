@@ -31,6 +31,8 @@ Before making larger changes, read the contributor docs in:
 GitHub now prefills pull requests with `.github/pull_request_template.md`.
 Use it to explain intent clearly, record what you validated, and call out any required documentation or changelog work.
 
+Pull requests against `main` and `develop` also run a CodeScene coverage-gate check when CI has produced the Cobertura coverage artifact, so PRs can be blocked when changed code falls below the configured coverage threshold.
+
 **Before opening a pull request, please run the local quality flow from the repository root:**
 
 ```powershell title="run.ps1"

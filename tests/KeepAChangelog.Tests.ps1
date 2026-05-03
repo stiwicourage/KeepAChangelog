@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path $PSScriptRoot '..' 'src' 'KeepAChangelog.psd1') -Force
+    & (Join-Path $PSScriptRoot '..' 'scripts' 'build' 'ci' 'Import-BuiltCiModule.ps1') | Out-Null
 }
 
 Describe 'Initialize-KeepAChangelogFile' {
@@ -125,6 +125,24 @@ Describe 'Test-KeepAChangelogFile' {
 
         $result.IsValid | Should -BeFalse
         $result.Errors | Should -Contain 'CHANGELOG.md must end with reference links once releases exist.'
+    }
+
+    It 'throws the validation errors when ThrowOnError is used' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+        $errorMessage = $null
+
+        @'
+# Changelog
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        try {
+            Test-KeepAChangelogFile -Path $path -ThrowOnError
+        }
+        catch {
+            $errorMessage = $_.Exception.Message
+        }
+
+        $errorMessage | Should -Be 'Could not find ## [Unreleased] section in CHANGELOG.md.'
     }
 }
 
@@ -318,5 +336,42 @@ Describe 'Convert-ChangelogReleaseNotesToTagMessage' {
         $result = Convert-ChangelogReleaseNotesToTagMessage -ReleaseNotes $releaseNotes
 
         $result | Should -Be "Fixed`n`nFixed CLI parsing.`nFixed release note formatting."
+    }
+}
+
+Describe 'Get-UnreleasedCompareLinkMatch' {
+    It 'extracts the compare prefix and previous release reference' {
+        InModuleScope KeepAChangelog {
+            $match = Get-UnreleasedCompareLinkMatch -Text @'
+# Changelog
+
+## [Unreleased]
+
+[Unreleased]: https://github.com/example/repo/compare/1.5.0...HEAD
+'@
+
+            $match.Success | Should -BeTrue
+            $match.Groups['prefix'].Value | Should -Be 'https://github.com/example/repo/compare/'
+            $match.Groups['from'].Value | Should -Be '1.5.0'
+        }
+    }
+
+    It 'throws when the Unreleased compare link is missing' {
+        InModuleScope KeepAChangelog {
+            $errorMessage = $null
+
+            try {
+                Get-UnreleasedCompareLinkMatch -Text @'
+# Changelog
+
+## [Unreleased]
+'@
+            }
+            catch {
+                $errorMessage = $_.Exception.Message
+            }
+
+            $errorMessage | Should -Be 'Could not find an [Unreleased] compare link in CHANGELOG.md.'
+        }
     }
 }

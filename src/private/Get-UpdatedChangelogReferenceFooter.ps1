@@ -54,12 +54,6 @@ function Get-UpdatedChangelogReferenceFooter {
 
     if (-not $linkMap.Contains($ReleaseVersion)) {
         $unreleasedIndex = $orderedLabelList.IndexOf('Unreleased')
-
-        if ($unreleasedIndex -lt 0) {
-            $orderedLabelList.Insert(0, 'Unreleased')
-            $unreleasedIndex = 0
-        }
-
         $orderedLabelList.Insert($unreleasedIndex + 1, $ReleaseVersion)
     }
 

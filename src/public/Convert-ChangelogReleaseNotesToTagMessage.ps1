@@ -37,10 +37,6 @@ function Convert-ChangelogReleaseNotesToTagMessage {
         $allowBlankLine = $true
     }
 
-    while ($lineList.Count -gt 0 -and [string]::IsNullOrWhiteSpace($lineList[0])) {
-        $lineList.RemoveAt(0)
-    }
-
     while ($lineList.Count -gt 0 -and [string]::IsNullOrWhiteSpace($lineList[$lineList.Count - 1])) {
         $lineList.RemoveAt($lineList.Count - 1)
     }
