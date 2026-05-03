@@ -74,3 +74,12 @@ Move-UnreleasedChangelog `
     -Version 1.0.0 `
     -RepositoryUrl https://github.com/stiwicourage/KeepAChangelog
 ```
+
+## Release automation
+
+The repository publish workflow now follows the same branch split as `NovaModuleTools`:
+
+- pushes to `main` use `Invoke-NovaRelease -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration`
+- pushes to `develop` use `Publish-NovaModule -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration`
+
+After the `main` release path completes, the workflow still commits the released changelog, creates the annotated version tag, and prepares the next prerelease version on `develop`.

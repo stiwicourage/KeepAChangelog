@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
 
   workflow_dispatch:
 
@@ -56,11 +57,15 @@ jobs:
           Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value $report
           Write-Output $report
 
-      - name: Run semantic release with NovaRelease
+      - name: Ensure PSGallery repository registration
+        if: github.ref_name == 'main'
+        uses: ./.github/actions/ensure-psresource-repository
+
+      - name: Run release with NovaRelease
         id: semantic_release
         if: github.ref_name == 'main'
         run: |
-          Update-NovaModuleVersion -ContinuousIntegration
+          Invoke-NovaRelease -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration
           $version = Get-NovaProjectInfo -Version
           $result = Move-UnreleasedChangelog -Version $version
 
@@ -95,17 +100,6 @@ jobs:
           tag-name: ${{ steps.semantic_release.outputs.release_version }}
           target-sha: ${{ steps.commit_release.outputs.commit-sha }}
           message: ${{ steps.semantic_release.outputs.tag_message }}
-
-      - name: Ensure PSGallery repository registration
-        if: github.ref_name == 'main' && steps.commit_release.outputs.has-changes == 'true'
-        uses: ./.github/actions/ensure-psresource-repository
-
-      - name: Publish module to PSGallery
-        if: github.ref_name == 'main' && steps.commit_release.outputs.has-changes == 'true'
-        run: |
-          Publish-NovaModule -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration
-        env:
-          PSGALLERY_API: ${{ secrets.PSGALLERY_API }}
 
       - name: Prepare next prerelease version on main -> develop
         if: github.ref_name == 'main' && steps.commit_release.outputs.has-changes == 'true'
