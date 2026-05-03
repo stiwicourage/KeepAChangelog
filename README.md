@@ -14,10 +14,11 @@ PowerShell external help continues to live under `docs/KeepAChangelog/en-US/`.
 
 ## Module commands
 
-Import the module directly from `src/` while the project is under active development:
+Build the module and import it from `dist/` so you use the same output that gets tested and published:
 
 ```powershell
-Import-Module ./src/KeepAChangelog.psd1 -Force
+nova build
+Import-Module ./dist/KeepAChangelog/KeepAChangelog.psd1 -Force
 ```
 
 Available commands:
