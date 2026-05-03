@@ -28,7 +28,7 @@ jobs:
         run: ./scripts/build/ci/Install-CiPowerShellModules.ps1
 
       - name: Build Module
-        run: Invoke-NovaBuild -ContinuousIntegration -Verbose
+        run: Invoke-NovaBuild -ContinuousIntegration
 
       - name: Run Pester Tests
         run: Test-NovaBuild
@@ -60,7 +60,7 @@ jobs:
         id: semantic_release
         if: github.ref_name == 'main'
         run: |
-          Update-NovaModuleVersion -ContinuousIntegration -Verbose
+          Update-NovaModuleVersion -ContinuousIntegration
           $version = Get-NovaProjectInfo -Version
           $result = Move-UnreleasedChangelog -Version $version
 
@@ -116,7 +116,7 @@ jobs:
           git checkout develop
           git reset --hard origin/main
 
-          Update-NovaModuleVersion -Preview -ContinuousIntegration -Verbose
+          Update-NovaModuleVersion -Preview -ContinuousIntegration
 
       - name: Create verified develop prerelease commit
         id: commit_develop_from_main
@@ -156,7 +156,7 @@ jobs:
       - name: Bump next prerelease version on develop
         if: github.ref_name == 'develop'
         run: |
-          Update-NovaModuleVersion -Preview -ContinuousIntegration -Verbose
+          Update-NovaModuleVersion -Preview -ContinuousIntegration
 
       - name: Create verified develop commit
         id: commit_develop
