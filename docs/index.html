@@ -124,108 +124,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         </div>
 
         <div class="good-practices">
-          <h3 id="getting-started">
-            <a aria-hidden="true" class="anchor" href="#getting-started"></a>
-            Getting started
+          <h3 id="features">
+            <a aria-hidden="true" class="anchor" href="#features"></a>
+            What can KeepAChangelog do?
           </h3>
 
-          <h4 id="install-from-powershell-gallery">
-            <a aria-hidden="true" class="anchor" href="#install-from-powershell-gallery"></a>
-            Install from PowerShell Gallery
+          <h4 id="core-features">
+            <a aria-hidden="true" class="anchor" href="#core-features"></a>
+            Core features
           </h4>
-
-          <p>
-            Install the latest published stable version from PowerShell Gallery if you want to use
-            the module in your own scripts, repositories, or release automation.
-          </p>
-
-          <pre><code>Install-Module -Name KeepAChangelog
-
-# Or with PSResourceGet
-Install-PSResource -Name KeepAChangelog</code></pre>
-
-          <h4 id="initialize">
-            <a aria-hidden="true" class="anchor" href="#initialize"></a>
-            Initialize a changelog
-          </h4>
-
-          <p>
-            Pass <code>-PreviousReleaseReference</code> when your project already has a released tag,
-            commit SHA, or a legitimate branch reference such as <code>main</code> or
-            <code>develop</code>.
-          </p>
-
-          <pre><code>Initialize-KeepAChangelogFile `
-    -Path ./CHANGELOG.md `
-    -RepositoryUrl https://github.com/example/repo `
-    -PreviousReleaseReference develop</code></pre>
-        </div>
-
-        <div class="effort">
-          <h3 id="effort">
-            <a aria-hidden="true" class="anchor" href="#effort"></a>
-            How can I move unreleased notes into a new release section?
-          </h3>
-
-          <p>
-            Use <code>Move-UnreleasedChangelog</code> to move the current
-            <code>Unreleased</code> section into a new versioned release section.
-          </p>
-
-          <p>This does two things:</p>
 
           <ul>
-            <li>The notes under <code>## [Unreleased]</code> become a new release section.</li>
-            <li>The module clears the unreleased notes and updates the compare links for the next cycle.</li>
+            <li>Create a new <code>CHANGELOG.md</code> template that follows Keep a Changelog.</li>
+            <li>Add standard section headings such as <code>Added</code>, <code>Changed</code>, and <code>Fixed</code>.</li>
+            <li>Include an optional <code>[Unreleased]</code> compare link footer when a previous release reference exists.</li>
+            <li>Validate an existing changelog and return structured errors when the file does not follow the expected format.</li>
+            <li>Move unreleased notes into a new release section and clear the unreleased body for the next cycle.</li>
+            <li>Update compare links and release links automatically as part of the release move.</li>
+            <li>Convert markdown release notes into a plain-text tag message for git tags or release automation.</li>
           </ul>
-        </div>
 
-        <div class="bad-practices">
-          <h3 id="avoid">
-            <a aria-hidden="true" class="anchor" href="#avoid"></a>
-            Common mistakes to avoid
-          </h3>
-
-          <h4 id="git-log">
-            <a aria-hidden="true" class="anchor" href="#git-log"></a>
-            Treating the changelog like a git log
+          <h4 id="public-commands">
+            <a aria-hidden="true" class="anchor" href="#public-commands"></a>
+            Public commands
           </h4>
 
-          <p>
-            Keep a Changelog is for humans. The module helps preserve that by promoting curated
-            <code>Unreleased</code> notes instead of dumping commit history into release entries.
-          </p>
-
-          <h4 id="remove-unreleased">
-            <a aria-hidden="true" class="anchor" href="#remove-unreleased"></a>
-            Removing the <code>Unreleased</code> section
-          </h4>
-
-          <p>
-            The next release always comes from <code>## [Unreleased]</code>. KeepAChangelog expects
-            that section to exist and to remain the source for the next release.
-          </p>
-
-          <h4 id="dates">
-            <a aria-hidden="true" class="anchor" href="#dates"></a>
-            Using the wrong date format
-          </h4>
-
-          <p>
-            Release headings must use <code>yyyy-MM-dd</code>. If you provide
-            <code>-Date</code>, use that exact format.
-          </p>
-
-          <h4 id="contributor-docs">
-            <a aria-hidden="true" class="anchor" href="#contributor-docs"></a>
-            Looking for contributor workflow here
-          </h4>
-
-          <p>
-            This site is intentionally user-focused. Repository structure, release automation,
-            contributor expectations, and maintenance workflow live in
-            <a href="https://github.com/stiwicourage/KeepAChangelog/blob/main/README.md">README.md on GitHub</a>.
-          </p>
+          <ul>
+            <li><code>Initialize-KeepAChangelogFile</code> creates a new changelog template.</li>
+            <li><code>Test-KeepAChangelogFile</code> validates a changelog and returns the validation result.</li>
+            <li><code>Move-UnreleasedChangelog</code> promotes the current unreleased notes into a release section.</li>
+            <li><code>Convert-ChangelogReleaseNotesToTagMessage</code> turns release notes into a tag-friendly plain-text message.</li>
+          </ul>
         </div>
 
         <div class="frequently-asked-questions">
@@ -277,6 +206,131 @@ Install-PSResource -Name KeepAChangelog</code></pre>
             specification for the convention itself. This module automates that workflow for
             PowerShell projects.
           </p>
+        </div>
+
+        <div class="bad-practices">
+          <h3 id="command-guide">
+            <a aria-hidden="true" class="anchor" href="#command-guide"></a>
+            Installation and command guide
+          </h3>
+
+          <h4 id="install">
+            <a aria-hidden="true" class="anchor" href="#install"></a>
+            Install from PowerShell Gallery
+          </h4>
+
+          <p>
+            Install the latest published stable version from PowerShell Gallery if you want to use
+            the module in your own scripts, repositories, or release automation.
+          </p>
+
+          <pre><code>Install-Module -Name KeepAChangelog
+
+# Or with PSResourceGet
+Install-PSResource -Name KeepAChangelog</code></pre>
+
+          <h4 id="initialize-command">
+            <a aria-hidden="true" class="anchor" href="#initialize-command"></a>
+            Initialize a changelog
+          </h4>
+
+          <p>
+            Create a new changelog template and pass <code>-PreviousReleaseReference</code> when
+            your project already has a released tag, commit SHA, or a legitimate branch reference
+            such as <code>main</code> or <code>develop</code>.
+          </p>
+
+          <pre><code>Initialize-KeepAChangelogFile `
+    -Path ./CHANGELOG.md `
+    -RepositoryUrl https://github.com/example/repo `
+    -PreviousReleaseReference develop</code></pre>
+
+          <h4 id="validate-command">
+            <a aria-hidden="true" class="anchor" href="#validate-command"></a>
+            Validate a changelog
+          </h4>
+
+          <p>
+            Check whether a changelog follows the expected structure before a release or inside CI.
+          </p>
+
+          <pre><code>$result = Test-KeepAChangelogFile -Path ./CHANGELOG.md
+$result.IsValid
+$result.Errors</code></pre>
+
+          <h4 id="release-command">
+            <a aria-hidden="true" class="anchor" href="#release-command"></a>
+            Move unreleased notes into a release
+          </h4>
+
+          <p>
+            Promote the current <code>## [Unreleased]</code> notes into a new versioned release
+            section and update the compare links.
+          </p>
+
+          <pre><code>Move-UnreleasedChangelog `
+    -Path ./CHANGELOG.md `
+    -Version 1.6.0 `
+    -Date 2026-04-30</code></pre>
+
+          <h4 id="tag-message-command">
+            <a aria-hidden="true" class="anchor" href="#tag-message-command"></a>
+            Convert release notes into a tag message
+          </h4>
+
+          <p>
+            Convert markdown release notes into plain text when you need a compact git tag or
+            release message.
+          </p>
+
+          <pre><code>$releaseNotes = @'
+### Fixed
+
+- Fixed changelog formatting.
+- Fixed compare link updates.
+'@
+
+Convert-ChangelogReleaseNotesToTagMessage -ReleaseNotes $releaseNotes</code></pre>
+        </div>
+
+        <div class="effort">
+          <h3 id="effort">
+            <a aria-hidden="true" class="anchor" href="#effort"></a>
+            How can I use KeepAChangelog in a CI/CD environment?
+          </h3>
+
+          <p>
+            KeepAChangelog works well in CI/CD because the module returns structured data that
+            release automation can reuse for validation, changelog updates, release notes, and tag
+            messages.
+          </p>
+
+          <p>A typical CI/CD flow looks like this:</p>
+
+          <ul>
+            <li>Run <code>Test-KeepAChangelogFile</code> in pull requests or CI to fail fast when the changelog format is invalid.</li>
+            <li>Run <code>Move-UnreleasedChangelog</code> during a release to promote <code>Unreleased</code> notes into a versioned release section.</li>
+            <li>Reuse the returned release data for follow-up automation such as commit messages, git tags, release notes, and compare links.</li>
+          </ul>
+
+          <p>The release result is especially useful in automation because it includes values such as:</p>
+
+          <ul>
+            <li><code>Release.Version</code>, <code>Release.Date</code>, and <code>Release.Tag</code></li>
+            <li><code>ReleaseNotesBody</code> and <code>TagMessageText</code></li>
+            <li><code>UpdatedUnreleasedLink</code> and <code>NewReleaseCompareLink</code></li>
+            <li><code>UpdatedText</code> for the rewritten changelog content</li>
+          </ul>
+
+          <h3 id="examples">
+            <a aria-hidden="true" class="anchor" href="#examples"></a>
+            Examples from this repository:
+          </h3>
+
+          <ul>
+            <li><a href="https://github.com/stiwicourage/KeepAChangelog/blob/develop/.github/workflows/Tests.yml">Tests.yml</a> shows how validation and test automation run in CI.<br/><code>Test-KeepAChangelogFile</code></li>
+            <li><a href="https://github.com/stiwicourage/KeepAChangelog/blob/develop/.github/workflows/Publish.yml">Publish.yml</a> shows how the module is used in the publish and release workflow. <code>Move-UnreleasedChangelog</code></li>
+          </ul>
         </div>
 
         <footer class="footer clearfix" role="contentinfo">

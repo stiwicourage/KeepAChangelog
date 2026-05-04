@@ -93,6 +93,8 @@ The repository publish workflow now follows the same branch split as `NovaModule
 
 After the `main` release path completes, the workflow still commits the released changelog, creates the annotated version tag, and prepares the next prerelease version on `develop`.
 
+The test workflow also imports the built module from `dist/` and runs `Test-KeepAChangelogFile -Path ./CHANGELOG.md` so the repository changelog is validated by the same command the module exposes to users.
+
 [changelog]: ./CHANGELOG.md
 [changelog-badge]: https://img.shields.io/badge/changelog-Keep%20a%20Changelog%20v0.1.1-%23E05735
 [license]: ./LICENSE

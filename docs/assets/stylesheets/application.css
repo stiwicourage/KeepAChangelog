@@ -233,6 +233,10 @@ header .mark {
   border: none;
 }
 
+.bad-practices pre code {
+  background-color: transparent;
+}
+
 .bad-practices a {
   color: #faa930;
   text-decoration: underline;
