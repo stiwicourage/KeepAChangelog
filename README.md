@@ -1,6 +1,6 @@
 # <img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1L1w0v431V0d1K410f3Y/keepAChangelog-logo-dark.svg" height=150 alt="KeepAChangelog" />
 
-[![Keep a Changelog][changelog-badge]][changelog] [![PowerShell Gallery Version][version-badge]][powershellgallery] [![MIT License Badge][license-badge]][license]
+[![Keep a Changelog][changelog-badge]][changelog] [![PowerShell Gallery Version][version-badge]][powershellgallery]
 
 Don’t let your friends dump git logs into changelogs™
 
@@ -97,9 +97,7 @@ Those release automation commits no longer use `[skip ci]`. Instead, the publish
 
 The test workflow also imports the built module from `dist/` and runs `Test-KeepAChangelogFile -Path ./CHANGELOG.md` so the repository changelog is validated by the same command the module exposes to users.
 
-[changelog]: ./CHANGELOG.md
+[changelog]: https://keepachangelog.com/
 [changelog-badge]: https://img.shields.io/badge/changelog-Keep%20a%20Changelog-%23E05735
-[powershellgallery]: https://www.powershellgallery.com/packages/KeepAChangelog
-[license]: ./LICENSE
-[version-badge]: https://img.shields.io/powershellgallery/v/KeepAChangelog
-[license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[powershellgallery]: https://www.powershellgallery.com/packages/KeepAChangelog/
+[version-badge]: https://img.shields.io/powershellgallery/v/KeepAChangelog?color=blue
