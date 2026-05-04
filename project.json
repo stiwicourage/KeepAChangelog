@@ -16,7 +16,10 @@
       "Changelog",
       "ReleaseNotes"
     ],
-    "ProjectUri": "https://github.com/stiwicourage/KeepAChangelog"
+    "ProjectUri": "https://keepachangelog.ps",
+    "ReleaseNotes": "https://keepachangelog.ps",
+    "IconUri": "https://keepachangelog.ps/assets/images/favicon.ico",
+    "LicenseUri": "https://keepachangelog.ps/license.html"
   },
   "Package": {
     "Types": [
