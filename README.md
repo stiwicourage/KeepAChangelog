@@ -86,12 +86,14 @@ Move-UnreleasedChangelog `
 
 ## Release automation
 
-The repository publish workflow now follows the same branch split as `NovaModuleTools`:
+The repository publish workflow keeps the same branch-specific release paths as `NovaModuleTools`:
 
-- pushes to `main` use `Invoke-NovaRelease -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration`
-- pushes to `develop` use `Publish-NovaModule -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration`
+- the `main` path uses `Invoke-NovaRelease -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration`
+- the `develop` path uses `Publish-NovaModule -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration`
 
 After the `main` release path completes, the workflow still commits the released changelog, creates the annotated version tag, and prepares the next prerelease version on `develop`.
+
+Those release automation commits no longer use `[skip ci]`. Instead, the publish workflow ignores its own `chore(release): ...` push on `main`, which prevents self-trigger loops without suppressing a later publish when `develop` is merged back into `main`.
 
 The test workflow also imports the built module from `dist/` and runs `Test-KeepAChangelogFile -Path ./CHANGELOG.md` so the repository changelog is validated by the same command the module exposes to users.
 
