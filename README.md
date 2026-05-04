@@ -1,6 +1,15 @@
+# <img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1L1w0v431V0d1K410f3Y/keepAChangelog-logo-dark.svg" height=150 alt="KeepAChangelog" />
+
+[![KeepAChangelog v0.1.1 badge][changelog-badge]][changelog] [![Version 0.1.1 Badge][version-badge]][changelog] [![MIT License Badge][license-badge]][license]
+
+Don’t let your friends dump git logs into changelogs™
+
+
 # KeepAChangelog
 
 `KeepAChangelog` is a PowerShell module for creating, validating, and releasing changelog files that follow the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+
+The GitHub Pages user manual lives in [`docs/`](./docs/) and is intended for module users. Contributor workflow and repository-maintainer guidance stay in this `README.md`.
 
 ## Iteration 1 documents
 
@@ -83,3 +92,9 @@ The repository publish workflow now follows the same branch split as `NovaModule
 - pushes to `develop` use `Publish-NovaModule -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration`
 
 After the `main` release path completes, the workflow still commits the released changelog, creates the annotated version tag, and prepares the next prerelease version on `develop`.
+
+[changelog]: ./CHANGELOG.md
+[changelog-badge]: https://img.shields.io/badge/changelog-Keep%20a%20Changelog%20v0.1.1-%23E05735
+[license]: ./LICENSE
+[version-badge]: https://img.shields.io/badge/version-0.1.1-blue.svg
+[license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
