@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Changed the `README.md` badges so the changelog-format badge is stable and the version badge is pulled dynamically from PowerShell Gallery instead of hardcoding a released version.
+
 ### Deprecated
 
 ### Removed

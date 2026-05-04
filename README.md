@@ -1,6 +1,6 @@
 # <img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1L1w0v431V0d1K410f3Y/keepAChangelog-logo-dark.svg" height=150 alt="KeepAChangelog" />
 
-[![KeepAChangelog v0.1.1 badge][changelog-badge]][changelog] [![Version 0.1.1 Badge][version-badge]][changelog] [![MIT License Badge][license-badge]][license]
+[![Keep a Changelog][changelog-badge]][changelog] [![PowerShell Gallery Version][version-badge]][powershellgallery] [![MIT License Badge][license-badge]][license]
 
 Don’t let your friends dump git logs into changelogs™
 
@@ -96,7 +96,8 @@ After the `main` release path completes, the workflow still commits the released
 The test workflow also imports the built module from `dist/` and runs `Test-KeepAChangelogFile -Path ./CHANGELOG.md` so the repository changelog is validated by the same command the module exposes to users.
 
 [changelog]: ./CHANGELOG.md
-[changelog-badge]: https://img.shields.io/badge/changelog-Keep%20a%20Changelog%20v0.1.1-%23E05735
+[changelog-badge]: https://img.shields.io/badge/changelog-Keep%20a%20Changelog-%23E05735
+[powershellgallery]: https://www.powershellgallery.com/packages/KeepAChangelog
 [license]: ./LICENSE
-[version-badge]: https://img.shields.io/badge/version-0.1.1-blue.svg
+[version-badge]: https://img.shields.io/powershellgallery/v/KeepAChangelog
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
