@@ -1,7 +1,7 @@
 {
   "ProjectName": "KeepAChangelog",
   "Description": "PowerShell helpers for creating, validating, and releasing Keep a Changelog files.",
-  "Version": "0.1.1",
+  "Version": "0.1.2-preview02",
   "Preamble": [
     "Set-StrictMode -Version Latest"
   ],
@@ -13,10 +13,16 @@
     "Tags": [
       "PowerShell",
       "KeepAChangelog",
+      "keep-a-changelog",
       "Changelog",
-      "ReleaseNotes"
+      "ReleaseNotes",
+      "SemanticVersioning",
+      "SemVer"
     ],
-    "ProjectUri": "https://github.com/stiwicourage/KeepAChangelog"
+    "ProjectUri": "https://keepachangelog.ps",
+    "ReleaseNotes": "https://keepachangelog.ps",
+    "IconUri": "https://keepachangelog.ps/assets/images/favicon.ico",
+    "LicenseUri": "https://github.com/stiwicourage/KeepAChangelog/blob/develop/LICENSE/"
   },
   "Package": {
     "Types": [

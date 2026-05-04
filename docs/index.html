@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta
+      content="KeepAChangelog is a PowerShell user guide for creating, validating, and releasing changelog files that follow Keep a Changelog."
+      name="description"
+    >
+    <meta content="KeepAChangelog User Guide" property="og:title">
+    <meta content="article" property="og:type">
+    <meta content="https://stiwicourage.github.io/KeepAChangelog/" property="og:url">
+    <meta
+      content="PowerShell helpers for creating, validating, and releasing changelog files that follow Keep a Changelog."
+      property="og:description"
+    >
+    <meta content="https://stiwicourage.github.io/KeepAChangelog/assets/images/keep-a-changelog-opengraph.png" property="og:image">
+    <link href="./assets/images/favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <link href="https://stiwicourage.github.io/KeepAChangelog/" rel="canonical">
+    <title>PowerShell User Guide</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Muli:400,700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700&amp;display=swap" rel="stylesheet">
+    <link href="./assets/stylesheets/application.css" rel="stylesheet">
+  </head>
+      <body>
+        <article>
+          <header>
+            <nav class="locales" role="navigation" aria-label="Language selection">
+              <label class="locale-label" for="language-select">Languages (1):</label>
+              <select id="language-select" name="language">
+                <option id="language-option" selected value="en">0.1.1 English</option>
+              </select>
+            </nav>
+            <img
+              alt="Keep a Changelog mark"
+              class="mark"
+              height="100"
+              src="./assets/images/keep-a-changelog-mark.svg"
+              width="130"
+            >
+          </header>
+
+        <div class="main" role="main">
+          <div class="header">
+            <div class="title">
+              <h1>PowerShell Module</h1>
+              <h2>Don’t let your friends dump git logs into changelogs.</h2>
+            </div>
+            <a class="version-link" href="https://www.powershellgallery.com/packages/KeepAChangelog/0.1.1">
+              Version <strong id="current-version">0.1.1</strong>
+            </a>
+
+            <pre class="changelog" lang="en"><code id="project-changelog"># Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Added a GitHub Pages user manual in `docs/` for people using the `KeepAChangelog` module, while keeping contributor and repository workflow guidance in `README.md`.
+
+### Changed
+- Changed CI so pull requests now run a dedicated CodeScene coverage-gate check against a Cobertura report generated from the built module, remapped back to `src/`, and validated against the full module source surface, while keeping the existing develop/manual coverage upload and analysis flow.
+- Changed publish automation so pushes to `main` now release through `Invoke-NovaRelease -Repository PSGallery -ApiKey $env:PSGALLERY_API -SkipTests -ContinuousIntegration`, while pushes to `develop` keep using `Publish-NovaModule` for the prerelease publish path.
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.1.1] - 2026-05-02
+
+### Added
+
+- Created command `Initialize-KeepAChangelogFile`, allowed without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
+- Created command `Move-UnreleasedChangelog`, `-Version` is required release input, and `-Date` is optional with `yyyy-MM-dd` validation.
+
+[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/stiwicourage/KeepAChangelog/compare/103d84a...0.1.1</code></pre>
+          </div>
+
+        <div class="answers">
+          <h3 id="what">
+            <a aria-hidden="true" class="anchor" href="#what"></a>
+            What is KeepAChangelog?
+          </h3>
+
+          <p>
+            KeepAChangelog is a PowerShell module that helps you create, validate, and release
+            <code>CHANGELOG.md</code> files that follow the
+            <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a> convention.
+          </p>
+
+          <h3 id="why">
+            <a aria-hidden="true" class="anchor" href="#who"></a>
+            Why use the module?
+          </h3>
+
+          <p>
+            The module keeps the <code>Unreleased</code> section, compare links, release headings,
+            and release-note formatting consistent so you do not have to.
+          </p>
+
+          <h3 id="who">
+            <a aria-hidden="true" class="anchor" href="#why"></a>
+            Who is this guide for?
+          </h3>
+
+          <p>
+            This guide is for developers and release maintainers who want to use the module in 
+            a repository or CI/CD workflow. If you want to contribute to the module itself, use the 
+            GitHub repository docs instead of this site.
+          </p>
+        </div>
+
+        <div class="good-practices">
+          <h3 id="features">
+            <a aria-hidden="true" class="anchor" href="#features"></a>
+            What can KeepAChangelog do?
+          </h3>
+
+          <h4 id="core-features">
+            <a aria-hidden="true" class="anchor" href="#core-features"></a>
+            Core features
+          </h4>
+
+          <ul>
+            <li>Create a new <code>CHANGELOG.md</code> template that follows Keep a Changelog.</li>
+            <li>Add standard section headings such as <code>Added</code>, <code>Changed</code>, and <code>Fixed</code>.</li>
+            <li>Include an optional <code>[Unreleased]</code> compare link footer when a previous release reference exists.</li>
+            <li>Validate an existing changelog and return structured errors when the file does not follow the expected format.</li>
+            <li>Move unreleased notes into a new release section and clear the unreleased body for the next cycle.</li>
+            <li>Update compare links and release links automatically as part of the release move.</li>
+            <li>Convert markdown release notes into a plain-text tag message for git tags or release automation.</li>
+          </ul>
+
+          <h4 id="public-commands">
+            <a aria-hidden="true" class="anchor" href="#public-commands"></a>
+            Public commands
+          </h4>
+
+          <ul>
+            <li><code>Initialize-KeepAChangelogFile</code> creates a new changelog template.</li>
+            <li><code>Test-KeepAChangelogFile</code> validates a changelog and returns the validation result.</li>
+            <li><code>Move-UnreleasedChangelog</code> promotes the current unreleased notes into a release section.</li>
+            <li><code>Convert-ChangelogReleaseNotesToTagMessage</code> turns release notes into a tag-friendly plain-text message.</li>
+          </ul>
+        </div>
+
+        <div class="frequently-asked-questions">
+          <h3 id="faq">
+            <a aria-hidden="true" class="anchor" href="#faq"></a>
+            Frequently asked questions
+          </h3>
+
+          <h4 id="first-release">
+            <a aria-hidden="true" class="anchor" href="#first-release"></a>
+            Can I start without a previous release reference?
+          </h4>
+
+          <p>
+            Yes. You can initialize a new changelog without footer links. On the first release,
+            pass <code>-RepositoryUrl</code> so the module can create the initial compare and release
+            links.
+          </p>
+
+          <h4 id="branch-reference">
+            <a aria-hidden="true" class="anchor" href="#branch-reference"></a>
+            Can <code>main</code> or <code>develop</code> be used as the previous release reference?
+          </h4>
+
+          <p>
+            Yes. Branch references are supported when your project has not created tags yet or when
+            a branch ref is the right compare source for the first iteration.
+          </p>
+
+          <h4 id="whatif">
+            <a aria-hidden="true" class="anchor" href="#whatif"></a>
+            Can I preview a release move before writing the file?
+          </h4>
+
+          <p>
+            Yes. <code>Move-UnreleasedChangelog</code> supports PowerShell
+            <code>-WhatIf</code>, so you can inspect the returned data object without changing the
+            changelog on disk.
+          </p>
+
+          <h4 id="format-rules">
+            <a aria-hidden="true" class="anchor" href="#format-rules"></a>
+            Where do I learn the underlying changelog rules?
+          </h4>
+
+          <p>
+            Read the original
+            <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>
+            specification for the convention itself. This module automates that workflow for
+            PowerShell projects.
+          </p>
+        </div>
+
+        <div class="bad-practices">
+          <h3 id="command-guide">
+            <a aria-hidden="true" class="anchor" href="#command-guide"></a>
+            Installation and command guide
+          </h3>
+
+          <h4 id="install">
+            <a aria-hidden="true" class="anchor" href="#install"></a>
+            Install from PowerShell Gallery
+          </h4>
+
+          <p>
+            Install the latest published stable version from PowerShell Gallery if you want to use
+            the module in your own scripts, repositories, or release automation.
+          </p>
+
+          <pre><code>Install-Module -Name KeepAChangelog
+
+# Or with PSResourceGet
+Install-PSResource -Name KeepAChangelog</code></pre>
+
+          <h4 id="initialize-command">
+            <a aria-hidden="true" class="anchor" href="#initialize-command"></a>
+            Initialize a changelog
+          </h4>
+
+          <p>
+            Create a new changelog template and pass <code>-PreviousReleaseReference</code> when
+            your project already has a released tag, commit SHA, or a legitimate branch reference
+            such as <code>main</code> or <code>develop</code>.
+          </p>
+
+          <pre><code>Initialize-KeepAChangelogFile `
+    -Path ./CHANGELOG.md `
+    -RepositoryUrl https://github.com/example/repo `
+    -PreviousReleaseReference develop</code></pre>
+
+          <h4 id="validate-command">
+            <a aria-hidden="true" class="anchor" href="#validate-command"></a>
+            Validate a changelog
+          </h4>
+
+          <p>
+            Check whether a changelog follows the expected structure before a release or inside CI.
+          </p>
+
+          <pre><code>$result = Test-KeepAChangelogFile -Path ./CHANGELOG.md
+$result.IsValid
+$result.Errors</code></pre>
+
+          <h4 id="release-command">
+            <a aria-hidden="true" class="anchor" href="#release-command"></a>
+            Move unreleased notes into a release
+          </h4>
+
+          <p>
+            Promote the current <code>## [Unreleased]</code> notes into a new versioned release
+            section and update the compare links.
+          </p>
+
+          <pre><code>Move-UnreleasedChangelog `
+    -Path ./CHANGELOG.md `
+    -Version 1.6.0 `
+    -Date 2026-04-30</code></pre>
+
+          <h4 id="tag-message-command">
+            <a aria-hidden="true" class="anchor" href="#tag-message-command"></a>
+            Convert release notes into a tag message
+          </h4>
+
+          <p>
+            Convert markdown release notes into plain text when you need a compact git tag or
+            release message.
+          </p>
+
+          <pre><code>$releaseNotes = @'
+### Fixed
+
+- Fixed changelog formatting.
+- Fixed compare link updates.
+'@
+
+Convert-ChangelogReleaseNotesToTagMessage -ReleaseNotes $releaseNotes</code></pre>
+        </div>
+
+        <div class="effort">
+          <h3 id="effort">
+            <a aria-hidden="true" class="anchor" href="#effort"></a>
+            How can I use KeepAChangelog in a CI/CD environment?
+          </h3>
+
+          <p>
+            KeepAChangelog works well in CI/CD because the module returns structured data that
+            release automation can reuse for validation, changelog updates, release notes, and tag
+            messages.
+          </p>
+
+          <p>A typical CI/CD flow looks like this:</p>
+
+          <ul>
+            <li>Run <code>Test-KeepAChangelogFile</code> in pull requests or CI to fail fast when the changelog format is invalid.</li>
+            <li>Run <code>Move-UnreleasedChangelog</code> during a release to promote <code>Unreleased</code> notes into a versioned release section.</li>
+            <li>Reuse the returned release data for follow-up automation such as commit messages, git tags, release notes, and compare links.</li>
+          </ul>
+
+          <p>The release result is especially useful in automation because it includes values such as:</p>
+
+          <ul>
+            <li><code>Release.Version</code>, <code>Release.Date</code>, and <code>Release.Tag</code></li>
+            <li><code>ReleaseNotesBody</code> and <code>TagMessageText</code></li>
+            <li><code>UpdatedUnreleasedLink</code> and <code>NewReleaseCompareLink</code></li>
+            <li><code>UpdatedText</code> for the rewritten changelog content</li>
+          </ul>
+
+          <h3 id="examples">
+            <a aria-hidden="true" class="anchor" href="#examples"></a>
+            Examples from this repository:
+          </h3>
+
+          <ul>
+            <li><a href="https://github.com/stiwicourage/KeepAChangelog/blob/develop/.github/workflows/Tests.yml">Tests.yml</a> shows how validation and test automation run in CI.<br/><code>Test-KeepAChangelogFile</code></li>
+            <li><a href="https://github.com/stiwicourage/KeepAChangelog/blob/develop/.github/workflows/Publish.yml">Publish.yml</a> shows how the module is used in the publish and release workflow. <code>Move-UnreleasedChangelog</code></li>
+          </ul>
+        </div>
+
+        <footer class="footer clearfix" role="contentinfo">
+          <img
+            alt="Keep a Changelog mark"
+            class="mark"
+            height="30"
+            src="./assets/images/keep-a-changelog-mark.svg"
+            width="30"
+          >
+
+          <p class="about">
+            This project is
+            <a href="https://github.com/stiwicourage/KeepAChangelog/blob/develop/LICENSE/">MIT Licensed</a>
+            // <a href="https://github.com/stiwicourage/KeepAChangelog/">Created &amp; maintained</a>
+            by
+            <a href="https://www.linkedin.com/in/stiwi">Stiwi Gabriel Courage</a>
+            // Designed by Tyler Fortune
+          </p>
+        </footer>
+      </div>
+    </article>
+    <script>
+      (function () {
+        const changelogUrl = "https://raw.githubusercontent.com/stiwicourage/KeepAChangelog/develop/CHANGELOG.md";
+        const changelogElement = document.getElementById("project-changelog");
+        const versionLinkElement = document.querySelector(".version-link");
+        const versionElement = document.getElementById("current-version");
+        const languageOptionElement = document.getElementById("language-option");
+
+        function getLatestReleaseVersion(text) {
+          const match = text.match(/^## \[(?!Unreleased\])([^\]]+)\]/m);
+          return match ? match[1] : "Unreleased";
+        }
+
+        function getGalleryUrl(version) {
+          return "https://www.powershellgallery.com/packages/KeepAChangelog/" + version;
+        }
+
+        fetch(changelogUrl)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Unable to load changelog.");
+            }
+
+            return response.text();
+          })
+          .then((text) => {
+            const version = getLatestReleaseVersion(text);
+            changelogElement.textContent = text.trim();
+            versionElement.textContent = version;
+            versionLinkElement.href = getGalleryUrl(version);
+            languageOptionElement.textContent = version + " English";
+          })
+          .catch(() => {
+            const version = getLatestReleaseVersion(changelogElement.textContent);
+            versionElement.textContent = version;
+            versionLinkElement.href = getGalleryUrl(version);
+          });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,407 @@
+html {
+  color: #342828;
+  background-color: #feecd3;
+  font: 16px/1.4 "Muli", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: #e05735;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1 {
+  color: #feecd3;
+  font-size: 3.2em;
+  font-weight: 700;
+  font-family: "Muli", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-bottom: 0;
+  line-height: 1;
+  text-transform: lowercase;
+}
+
+h2 {
+  font-size: 1.2em;
+  margin-top: 0.2em;
+  margin-bottom: 2em;
+  font-weight: 400;
+}
+
+h1,
+h2 {
+  text-align: left;
+}
+
+h3 {
+  font-size: 1.7em;
+  font-family: "Muli", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-top: 0;
+  margin-bottom: 1em;
+  padding-top: 1em;
+  position: relative;
+  padding-left: 0.1em;
+}
+
+h4 {
+  margin-top: 2em;
+  margin-bottom: 1em;
+  padding-right: 1.1em;
+  font-size: 1.2em;
+}
+
+h3:hover .anchor,
+h3:focus .anchor,
+h4:hover .anchor,
+h4:focus .anchor {
+  display: block;
+}
+
+h3 ~ p,
+h4 ~ p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  margin-top: 0;
+  padding-top: 1em;
+}
+
+article {
+  margin: 0 auto;
+  max-width: 65em;
+}
+
+header .mark {
+  float: left;
+  clear: both;
+  width: 80px;
+  margin-top: 2em;
+  margin-left: 2em;
+}
+
+.locales {
+  float: right;
+  margin-top: 2em;
+  margin-right: 3em;
+  margin-left: 1em;
+  padding: 0.7rem 1rem;
+  border-radius: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.5);
+  font-size: 75%;
+}
+
+.locales .locale-label {
+  margin-right: 0.4em;
+  color: #342828;
+}
+
+.main {
+  background-color: #ffffff;
+}
+
+.main > div {
+  padding-right: 8%;
+  padding-bottom: 3em;
+  padding-left: 8%;
+}
+
+.header {
+  padding-top: 5em;
+  padding-bottom: 0.1em;
+  background-color: #e05735;
+  background-image: url("../images/bg-hero@2x.png");
+  background-size: cover;
+}
+
+.header a {
+  color: #342828;
+}
+
+.header .title {
+  width: 60%;
+  margin: 0 auto -1.9em 10em;
+  margin-right: 2em;
+  font-size: 60%;
+}
+
+.header .version-link {
+  position: relative;
+  top: 2.9em;
+  color: #342828;
+}
+
+.footer .mark {
+  float: left;
+}
+
+.header .title aside {
+  margin: 3em -5% -3em;
+  padding: 2em 5%;
+  text-align: center;
+  background-color: #564243;
+  color: #feecd3;
+}
+
+.header .title aside a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.header .changelog {
+  position: relative;
+  top: 3.6em;
+  height: 20em;
+  margin: 1em 0.5em -14em;
+  padding: 1em;
+  overflow-x: auto;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px 0 hsla(0, 0%, 0%, 0.2);
+  font-size: 0.8em;
+}
+
+.header .changelog code {
+  font-size: 1em;
+}
+
+.answers {
+  margin-top: 12.0em;
+  background-color: #ffffff;
+}
+
+.answers h3,
+.effort h3,
+.frequently-asked-questions h3 {
+  color: #e05735;
+}
+
+.answers p,
+.good-practices p,
+.bad-practices p,
+.effort p,
+.frequently-asked-questions p {
+  font-size: 1em;
+}
+
+.good-practices {
+  padding-top: 1.0em;
+  background-color: #faa930;
+  background-image: url("../images/bg-img1@2x.png");
+  background-position: bottom left;
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+
+.good-practices a.anchor {
+  color: #342828;
+}
+
+.good-practices p a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.good-practices ul {
+  font-size: 1em;
+}
+
+.bad-practices {
+  padding-top: 3em;
+  color: #ffffff;
+  background-color: #3f2b2d;
+  background-image: url("../images/bg-img2@2x.png");
+  background-position: bottom left;
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+
+.bad-practices h3 {
+  color: #faa930;
+}
+
+.bad-practices code {
+  color: #342828;
+  background-color: #baaeb0;
+  border: none;
+}
+
+.bad-practices pre code {
+  background-color: transparent;
+}
+
+.bad-practices a {
+  color: #faa930;
+  text-decoration: underline;
+}
+
+.effort,
+.frequently-asked-questions {
+  padding-top: 2em;
+  background-color: #ffffff;
+}
+
+.frequently-asked-questions h4 {
+  border-bottom: 1px solid rgba(63, 43, 45, 0.2);
+}
+
+article p {
+  font-size: 1.3em;
+}
+
+article ul {
+  font-size: 1.1em;
+  line-height: 1.5;
+  list-style-type: square;
+  padding-left: 1em;
+}
+
+article code,
+article pre {
+  background-color: #fff3e5;
+  font-family: "Source Code Pro", monospace;
+}
+
+article code {
+  border: 1px solid #ccc;
+  border-radius: 0.315em;
+  padding: 0 0.3em 0.04em;
+  font-size: 0.9em;
+}
+
+article pre {
+  overflow-x: auto;
+  padding: 1em;
+  white-space: pre-wrap;
+  border-radius: 0.315em;
+}
+
+article pre code {
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  white-space: pre-wrap;
+}
+
+.anchor {
+  display: none;
+  font-style: normal;
+  font-weight: 400;
+  position: absolute;
+  right: 100%;
+  top: 0;
+}
+
+.anchor::before {
+  line-height: 3.2;
+  content: "∞";
+  color: #e05735;
+  padding-right: 0.1em;
+}
+
+.footer {
+  line-height: 2.2;
+  padding-top: 1em;
+  padding-left: 2em;
+  padding-right: 2em;
+  border-top: 1px solid #e9e6e1;
+  background-color: #e05735;
+  color: #feecd3;
+  font-size: 0.6em;
+  font-weight: 400;
+}
+
+.footer::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.footer .mark {
+  float: left;
+}
+
+.footer a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.about {
+  margin-top: 0;
+  text-align: center;
+}
+
+@media (min-width: 576px) {
+  .header .title {
+    width: 60%;
+  }
+}
+
+@media (min-width: 768px) {
+  .locales {
+    font-size: 85%;
+  }
+
+  .header .title {
+    margin-left: 7em;
+    margin-right: 2em;
+    font-size: 100%;
+  }
+
+  header .mark {
+    width: 120px;
+    margin-top: 3em;
+    margin-bottom: 2em;
+    margin-left: 3em;
+  }
+}
+
+@media (min-width: 992px) {
+  .locales {
+    margin-top: 2em;
+    margin-bottom: -2em;
+    font-size: 100%;
+  }
+
+  .header .title {
+    width: 60%;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  header .mark {
+    clear: none;
+    width: 150px;
+    margin-top: 3em;
+    margin-bottom: 4em;
+  }
+}
+
+@media (min-width: 1200px) {
+  body {
+    margin: 8px;
+  }
+
+  .main {
+    margin-bottom: 2em;
+  }
+
+  .main > div:not(.header) {
+    padding-right: 20%;
+    padding-left: 20%;
+  }
+
+  .answers,
+  .effort,
+  .frequently-asked-questions {
+    padding-right: 25%;
+    padding-left: 25%;
+  }
+}
