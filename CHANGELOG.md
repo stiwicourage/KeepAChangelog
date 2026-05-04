@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added a GitHub Pages user manual in `docs/` for people using the `KeepAChangelog` module, with the keep-a-changelog style header and original footer wording/layout, original browser-default language dropdown sizing, independently aligned version and changelog panel placement, and a changelog panel that shows the current project `CHANGELOG.md` with adjusted typography and without changing the hero background height, while keeping contributor and repository workflow guidance in `README.md`.
+- Added a GitHub Pages user manual in `docs/` for people using the `KeepAChangelog` module, with the keep-a-changelog style header and original footer wording/layout, original browser-default language dropdown sizing, independently aligned version and changelog panel placement, adjusted first-section spacing, and a changelog panel that shows the current project `CHANGELOG.md` with adjusted typography and without changing the hero background height. The Getting started section now begins with installing the latest stable version from PowerShell Gallery, the effort section now explains how `Move-UnreleasedChangelog` moves unreleased notes into a release section, and the index-page version link uses the version derived from `CHANGELOG.md` to point to the matching PowerShell Gallery package URL.
 
 ### Changed
 - Changed CI so pull requests now run a dedicated CodeScene coverage-gate check against a Cobertura report generated from the built module, remapped back to `src/`, and validated against the full module source surface, while keeping the existing develop/manual coverage upload and analysis flow.

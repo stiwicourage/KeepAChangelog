@@ -13,13 +13,16 @@
     "Tags": [
       "PowerShell",
       "KeepAChangelog",
+      "keep-a-changelog",
       "Changelog",
-      "ReleaseNotes"
+      "ReleaseNotes",
+      "SemanticVersioning",
+      "SemVer"
     ],
     "ProjectUri": "https://keepachangelog.ps",
     "ReleaseNotes": "https://keepachangelog.ps",
     "IconUri": "https://keepachangelog.ps/assets/images/favicon.ico",
-    "LicenseUri": "https://keepachangelog.ps/license.html"
+    "LicenseUri": "https://github.com/stiwicourage/KeepAChangelog/blob/develop/LICENSE/"
   },
   "Package": {
     "Types": [

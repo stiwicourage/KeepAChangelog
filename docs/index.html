@@ -101,26 +101,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a> convention.
           </p>
 
-          <h3 id="who">
-            <a aria-hidden="true" class="anchor" href="#who"></a>
-            Who is this guide for?
-          </h3>
-
-          <p>
-            This guide is for developers and release maintainers who want to use the module in a
-            repository or CI/CD workflow. If you are contributing to the module itself, use the
-            GitHub repository docs instead of this site.
-          </p>
-
           <h3 id="why">
-            <a aria-hidden="true" class="anchor" href="#why"></a>
-            Why use the module instead of editing by hand?
+            <a aria-hidden="true" class="anchor" href="#who"></a>
+            Why use the module?
           </h3>
 
           <p>
             The module keeps the <code>Unreleased</code> section, compare links, release headings,
-            and release-note formatting consistent so you do not have to manually rewrite the file
-            for every release.
+            and release-note formatting consistent so you do not have to.
+          </p>
+
+          <h3 id="who">
+            <a aria-hidden="true" class="anchor" href="#why"></a>
+            Who is this guide for?
+          </h3>
+
+          <p>
+            This guide is for developers and release maintainers who want to use the module in 
+            a repository or CI/CD workflow. If you want to contribute to the module itself, use the 
+            GitHub repository docs instead of this site.
           </p>
         </div>
 
@@ -130,18 +129,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             Getting started
           </h3>
 
-          <h4 id="build-and-import">
-            <a aria-hidden="true" class="anchor" href="#build-and-import"></a>
-            Build and import the module
+          <h4 id="install-from-powershell-gallery">
+            <a aria-hidden="true" class="anchor" href="#install-from-powershell-gallery"></a>
+            Install from PowerShell Gallery
           </h4>
 
           <p>
-            Use the built output from <code>dist/</code> so you exercise the same module shape that
-            CI and publish automation use.
+            Install the latest published stable version from PowerShell Gallery if you want to use
+            the module in your own scripts, repositories, or release automation.
           </p>
 
-          <pre><code>nova build
-Import-Module ./dist/KeepAChangelog/KeepAChangelog.psd1 -Force</code></pre>
+          <pre><code>Install-Module -Name KeepAChangelog
+
+# Or with PSResourceGet
+Install-PSResource -Name KeepAChangelog</code></pre>
 
           <h4 id="initialize">
             <a aria-hidden="true" class="anchor" href="#initialize"></a>
@@ -149,8 +150,7 @@ Import-Module ./dist/KeepAChangelog/KeepAChangelog.psd1 -Force</code></pre>
           </h4>
 
           <p>
-            Start with <code>Initialize-KeepAChangelogFile</code>. Pass
-            <code>-PreviousReleaseReference</code> when your project already has a released tag,
+            Pass <code>-PreviousReleaseReference</code> when your project already has a released tag,
             commit SHA, or a legitimate branch reference such as <code>main</code> or
             <code>develop</code>.
           </p>
@@ -159,38 +159,24 @@ Import-Module ./dist/KeepAChangelog/KeepAChangelog.psd1 -Force</code></pre>
     -Path ./CHANGELOG.md `
     -RepositoryUrl https://github.com/example/repo `
     -PreviousReleaseReference develop</code></pre>
+        </div>
 
-          <h4 id="validate">
-            <a aria-hidden="true" class="anchor" href="#validate"></a>
-            Validate a changelog
-          </h4>
-
-          <p>
-            Use <code>Test-KeepAChangelogFile</code> when you want a structured validation result
-            before a release or as part of CI.
-          </p>
-
-          <ul>
-            <li><code>IsValid</code> tells you whether the file passed validation.</li>
-            <li><code>Errors</code> returns the issues to fix.</li>
-            <li><code>PreviousReleaseReference</code> returns the current compare-link source.</li>
-          </ul>
-
-          <h4 id="release">
-            <a aria-hidden="true" class="anchor" href="#release"></a>
-            Move <code>Unreleased</code> into a release
-          </h4>
+        <div class="effort">
+          <h3 id="effort">
+            <a aria-hidden="true" class="anchor" href="#effort"></a>
+            How can I move unreleased notes into a new release section?
+          </h3>
 
           <p>
-            Use <code>Move-UnreleasedChangelog</code> to promote the current
-            <code>## [Unreleased]</code> content into a new release section, clear the
-            unreleased body, and update compare links.
+            Use <code>Move-UnreleasedChangelog</code> to move the current
+            <code>Unreleased</code> section into a new versioned release section.
           </p>
 
+          <p>This does two things:</p>
+
           <ul>
-            <li>The version is required.</li>
-            <li>The date is optional; when omitted, the current <code>yyyy-MM-dd</code> date is used.</li>
-            <li>For a first release without an existing compare link, pass <code>-RepositoryUrl</code>.</li>
+            <li>The notes under <code>## [Unreleased]</code> become a new release section.</li>
+            <li>The module clears the unreleased notes and updates the compare links for the next cycle.</li>
           </ul>
         </div>
 
@@ -239,30 +225,6 @@ Import-Module ./dist/KeepAChangelog/KeepAChangelog.psd1 -Force</code></pre>
             This site is intentionally user-focused. Repository structure, release automation,
             contributor expectations, and maintenance workflow live in
             <a href="https://github.com/stiwicourage/KeepAChangelog/blob/main/README.md">README.md on GitHub</a>.
-          </p>
-        </div>
-
-        <div class="effort">
-          <h3 id="ci-cd">
-            <a aria-hidden="true" class="anchor" href="#ci-cd"></a>
-            Using KeepAChangelog in CI/CD
-          </h3>
-
-          <p>
-            The module is designed to return structured data that release automation can reuse for
-            commits, tags, release notes, or follow-up steps.
-          </p>
-
-          <ul>
-            <li><code>Release.Version</code>, <code>Release.Date</code>, and <code>Release.Tag</code></li>
-            <li><code>ReleaseNotesBody</code> and <code>TagMessageText</code></li>
-            <li><code>UpdatedUnreleasedLink</code> and <code>NewReleaseCompareLink</code></li>
-            <li><code>UpdatedText</code> for the rewritten changelog content</li>
-          </ul>
-
-          <p>
-            That makes it easy to keep the changelog move, git tag message, and release compare
-            links aligned in one automation flow.
           </p>
         </div>
 
@@ -341,12 +303,17 @@ Import-Module ./dist/KeepAChangelog/KeepAChangelog.psd1 -Force</code></pre>
       (function () {
         const changelogUrl = "https://raw.githubusercontent.com/stiwicourage/KeepAChangelog/develop/CHANGELOG.md";
         const changelogElement = document.getElementById("project-changelog");
+        const versionLinkElement = document.querySelector(".version-link");
         const versionElement = document.getElementById("current-version");
         const languageOptionElement = document.getElementById("language-option");
 
         function getLatestReleaseVersion(text) {
           const match = text.match(/^## \[(?!Unreleased\])([^\]]+)\]/m);
           return match ? match[1] : "Unreleased";
+        }
+
+        function getGalleryUrl(version) {
+          return "https://www.powershellgallery.com/packages/KeepAChangelog/" + version;
         }
 
         fetch(changelogUrl)
@@ -361,10 +328,13 @@ Import-Module ./dist/KeepAChangelog/KeepAChangelog.psd1 -Force</code></pre>
             const version = getLatestReleaseVersion(text);
             changelogElement.textContent = text.trim();
             versionElement.textContent = version;
+            versionLinkElement.href = getGalleryUrl(version);
             languageOptionElement.textContent = version + " English";
           })
           .catch(() => {
-            versionElement.textContent = getLatestReleaseVersion(changelogElement.textContent);
+            const version = getLatestReleaseVersion(changelogElement.textContent);
+            versionElement.textContent = version;
+            versionLinkElement.href = getGalleryUrl(version);
           });
       })();
     </script>
