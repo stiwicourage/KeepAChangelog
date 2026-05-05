@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Refactored the internal changelog validation helper into smaller private functions so the validation workflow keeps the same behavior while reducing method size and complexity ahead of `1.0.0`.
 - Fixed `Move-UnreleasedChangelog` so re-releasing the same version after moving its notes back into `Unreleased` reuses the real previous release reference instead of generating a self-compare link.
+- Fixed `Move-UnreleasedChangelog` so a new release date cannot be earlier than the latest existing release date in `CHANGELOG.md`, while still allowing first releases and same-day releases.
 
 ### Security
 
