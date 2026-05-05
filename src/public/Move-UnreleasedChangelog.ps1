@@ -29,6 +29,7 @@ function Move-UnreleasedChangelog {
 
     $text = Get-Content -LiteralPath $Path -Raw
     $result = Resolve-KeepAChangelogReleaseData -Text $text -Release $release -RepositoryUrl $RepositoryUrl
+    $result | Add-Member -NotePropertyName KeepAChangelogVersion -NotePropertyValue (Get-KeepAChangelogModuleVersion) -Force
     $targetVersion = $result.Release.Version
 
     if (-not $PSCmdlet.ShouldProcess($Path, "Promote [Unreleased] to [$targetVersion]")) {

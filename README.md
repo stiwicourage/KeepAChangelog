@@ -256,6 +256,7 @@ The public commands currently shipped by the module are:
 - `Initialize-KeepAChangelogFile`
 - `Test-KeepAChangelogFile`
 - `Move-UnreleasedChangelog`
+- `Get-KeepAChangelogVersion`
 - `Convert-ChangelogReleaseNotesToTagMessage`
 
 End-user usage belongs in the GitHub Pages guide. Keep the `README.md` focused on repository maintenance and release stewardship.

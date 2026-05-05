@@ -68,11 +68,18 @@ Describe 'Public command guard clauses' {
         $after = Get-Content -LiteralPath $path -Raw
 
         $result.Release.Version | Should -Be '1.6.0'
+        $result.KeepAChangelogVersion | Should -Be (Get-KeepAChangelogVersion)
         $after | Should -Be $before
     }
 }
 
 Describe 'Private helper coverage' {
+    It 'returns the loaded module version through the public version cmdlet' {
+        $result = Get-KeepAChangelogVersion
+
+        $result | Should -Be ((Get-Module KeepAChangelog).Version.ToString())
+    }
+
     It 'validates required release fields' {
         InModuleScope KeepAChangelog {
             $caseList = @(
@@ -232,6 +239,14 @@ Describe 'Private helper coverage' {
                     Date = '2026-05-03'
                 })
             } | Should -Not -Throw
+        }
+    }
+
+    It 'returns the current module version from the shared helper' {
+        InModuleScope KeepAChangelog {
+            $result = Get-KeepAChangelogModuleVersion
+
+            $result | Should -Be ((Get-Module KeepAChangelog).Version.ToString())
         }
     }
 }

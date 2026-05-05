@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added `Get-KeepAChangelogVersion` and included `KeepAChangelogVersion` in `Move-UnreleasedChangelog` output so CI logs and bug reports show which module version produced the result.
+
 ### Changed
 
 - Reworked `README.md` into a maintainer guide that explains the repository layout, local quality flow, CI/CD workflows, ScriptAnalyzer usage, CodeScene usage, release automation, and documentation ownership for the upcoming `1.0.0` release line.

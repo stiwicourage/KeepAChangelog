@@ -153,6 +153,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             <li><code>Initialize-KeepAChangelogFile</code> creates a new changelog template.</li>
             <li><code>Test-KeepAChangelogFile</code> validates a changelog and returns the validation result.</li>
             <li><code>Move-UnreleasedChangelog</code> promotes the current unreleased notes into a release section.</li>
+            <li><code>Get-KeepAChangelogVersion</code> returns the loaded module version for CI logs and troubleshooting.</li>
             <li><code>Convert-ChangelogReleaseNotesToTagMessage</code> turns release notes into a tag-friendly plain-text message.</li>
           </ul>
         </div>
@@ -258,6 +259,18 @@ Install-PSResource -Name KeepAChangelog</code></pre>
 $result.IsValid
 $result.Errors</code></pre>
 
+          <h4 id="version-command">
+            <a aria-hidden="true" class="anchor" href="#version-command"></a>
+            Show the loaded module version
+          </h4>
+
+          <p>
+            Print the currently loaded <code>KeepAChangelog</code> version when you need CI output
+            or local debugging logs to show exactly which module build produced the result.
+          </p>
+
+          <pre><code>Get-KeepAChangelogVersion</code></pre>
+
           <h4 id="release-command">
             <a aria-hidden="true" class="anchor" href="#release-command"></a>
             Move unreleased notes into a release
@@ -317,6 +330,7 @@ Convert-ChangelogReleaseNotesToTagMessage -ReleaseNotes $releaseNotes</code></pr
 
           <ul>
             <li><code>Release.Version</code>, <code>Release.Date</code>, and <code>Release.Tag</code></li>
+            <li><code>KeepAChangelogVersion</code> for the module version that produced the release result</li>
             <li><code>ReleaseNotesBody</code> and <code>TagMessageText</code></li>
             <li><code>UpdatedUnreleasedLink</code> and <code>NewReleaseCompareLink</code></li>
             <li><code>UpdatedText</code> for the rewritten changelog content</li>

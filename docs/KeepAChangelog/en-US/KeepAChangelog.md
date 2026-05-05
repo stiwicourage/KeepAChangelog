@@ -38,6 +38,10 @@ Validates that a changelog contains the required `## [Unreleased]` section, refe
 
 Moves the current `Unreleased` content into a versioned release section and updates compare links.
 
+### `PS> Get-KeepAChangelogVersion`
+
+Returns the loaded `KeepAChangelog` module version for troubleshooting and CI logging.
+
 ### `PS> Convert-ChangelogReleaseNotesToTagMessage`
 
 Converts markdown release notes into a trimmed plain-text tag message.
