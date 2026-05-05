@@ -243,6 +243,38 @@ Describe 'Move-UnreleasedChangelog' {
         ([regex]::Matches($updated, '(?m)^\[1\.6\.0\]:').Count) | Should -Be 1
     }
 
+    It 'reuses the last remaining release reference when the same version is released again' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Release notes moved back for editing.
+
+## [0.0.1] - 2026-05-01
+
+### Added
+
+- Initial release.
+
+[Unreleased]: https://github.com/example/repo/compare/0.1.0...HEAD
+[0.0.1]: https://github.com/example/repo/compare/develop...0.0.1
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Move-UnreleasedChangelog -Path $path -Version '0.1.0' -Date '2026-05-04'
+        $updated = Get-Content -LiteralPath $path -Raw
+
+        $result.PreviousReleaseReference | Should -Be '0.0.1'
+        $result.NewReleaseCompareLink | Should -Be 'https://github.com/example/repo/compare/0.0.1...0.1.0'
+        $updated | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.HEAD'
+        $updated | Should -Match '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.0\.1\.\.\.0\.1\.0'
+        $updated | Should -Not -Match '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.0\.1\.0'
+    }
+
     It 'adds footer links on the first release when the changelog started without a previous release reference' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
