@@ -35,7 +35,7 @@ This `README.md` is for **maintainers and contributors**. The GitHub Pages site 
 | Path | Purpose |
 | --- | --- |
 | `src/public/` | Public PowerShell commands exported by the module |
-| `src/private/` | Internal helpers used by the public commands |
+| `src/private/` | Internal helpers grouped by concern under `initialize/`, `validation/`, `release/`, and `shared/` |
 | `tests/` | Pester coverage and behavior tests |
 | `scripts/build/` | Maintainer-run quality scripts such as ScriptAnalyzer |
 | `scripts/build/ci/` | CI-parity scripts for build, test, coverage, and CodeScene upload |

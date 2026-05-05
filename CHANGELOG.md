@@ -13,12 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Reworked `README.md` into a maintainer guide that explains the repository layout, local quality flow, CI/CD workflows, ScriptAnalyzer usage, CodeScene usage, release automation, and documentation ownership for the upcoming `1.0.0` release line.
+- Moved the `Initialize-KeepAChangelogFile` internal helper functions into `src/private/initialize` so the initialization workflow follows the same private-helper structure as the rest of the module.
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Refactored the internal changelog validation helper into smaller private functions so the validation workflow keeps the same behavior while reducing method size and complexity ahead of `1.0.0`.
 
 ### Security
 
