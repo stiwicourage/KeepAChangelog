@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Reworked `README.md` into a maintainer guide that explains the repository layout, local quality flow, CI/CD workflows, ScriptAnalyzer usage, CodeScene usage, release automation, and documentation ownership for the upcoming `1.0.0` release line.
+
 ### Deprecated
 
 ### Removed
