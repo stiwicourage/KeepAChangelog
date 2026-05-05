@@ -40,6 +40,9 @@ The command:
 
 If the changelog has no footer yet because it started as a brand-new project, pass `-RepositoryUrl` on the first release so the footer links can be created.
 
+The returned object also includes `KeepAChangelogVersion` so CI logs and troubleshooting output
+can show which module version produced the release data.
+
 ## EXAMPLES
 
 ### EXAMPLE 1

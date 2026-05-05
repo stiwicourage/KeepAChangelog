@@ -68,11 +68,18 @@ Describe 'Public command guard clauses' {
         $after = Get-Content -LiteralPath $path -Raw
 
         $result.Release.Version | Should -Be '1.6.0'
+        $result.KeepAChangelogVersion | Should -Be (Get-KeepAChangelogVersion)
         $after | Should -Be $before
     }
 }
 
 Describe 'Private helper coverage' {
+    It 'returns the loaded module version through the public version cmdlet' {
+        $result = Get-KeepAChangelogVersion
+
+        $result | Should -Be ((Get-Module KeepAChangelog).Version.ToString())
+    }
+
     It 'validates required release fields' {
         InModuleScope KeepAChangelog {
             $caseList = @(
@@ -163,6 +170,84 @@ Describe 'Private helper coverage' {
         $result = Convert-ChangelogReleaseNotesToTagMessage -ReleaseNotes "Plain text line`n`n"
 
         $result | Should -Be 'Plain text line'
+    }
+
+    It 'extracts the target from release tag links' {
+        InModuleScope KeepAChangelog {
+            $result = Get-ChangelogReleaseTargetReference -Link 'https://github.com/example/repo/releases/tag/1.0.0'
+
+            $result | Should -Be '1.0.0'
+        }
+    }
+
+    It 'returns null when a link is not a compare or tag link' {
+        InModuleScope KeepAChangelog {
+            $result = Get-ChangelogReleaseTargetReference -Link 'https://github.com/example/repo/issues/123'
+
+            $result | Should -BeNullOrEmpty
+        }
+    }
+
+    It 'returns null when no usable previous release reference can be recovered' {
+        InModuleScope KeepAChangelog {
+            $result = Get-KeepAChangelogPreviousReleaseReference `
+                -Footer @'
+[0.9.0]: https://github.com/example/repo/releases/tag/1.0.0
+'@ `
+                -Validation ([pscustomobject]@{
+                    PreviousReleaseReference = '1.0.0'
+                    ReleaseVersions          = @('0.9.0')
+                }) `
+                -Release ([pscustomobject]@{
+                    Tag = '1.0.0'
+                })
+
+            $result | Should -BeNullOrEmpty
+        }
+    }
+
+    It 'returns the latest existing release date from the changelog body' {
+        InModuleScope KeepAChangelog {
+            $result = Get-KeepAChangelogLatestReleaseDate -Body @'
+## [Unreleased]
+
+## [1.1.0] - 2026-05-02
+
+## [1.0.0] - 2026-05-01
+'@
+
+            $result | Should -Be '2026-05-02'
+        }
+    }
+
+    It 'returns null when no released versions exist yet' {
+        InModuleScope KeepAChangelog {
+            $result = Get-KeepAChangelogLatestReleaseDate -Body @'
+## [Unreleased]
+
+### Added
+'@
+
+            $result | Should -BeNullOrEmpty
+        }
+    }
+
+    It 'allows first-release date ordering when no previous release exists' {
+        InModuleScope KeepAChangelog {
+            {
+                Assert-KeepAChangelogReleaseDateOrder -Body '## [Unreleased]' -Release ([pscustomobject]@{
+                    Date = '2026-05-03'
+                })
+            } | Should -Not -Throw
+        }
+    }
+
+    It 'returns the current module version from the shared helper' {
+        InModuleScope KeepAChangelog {
+            $result = Get-KeepAChangelogModuleVersion
+
+            $result | Should -Be ((Get-Module KeepAChangelog).Version.ToString())
+        }
     }
 }
 

@@ -1,5 +1,52 @@
 BeforeAll {
     & (Join-Path $PSScriptRoot '..' 'scripts' 'build' 'ci' 'Import-BuiltCiModule.ps1') | Out-Null
+    $script:InitializeTestChangelog = {
+        param(
+            [Parameter(Mandatory)]
+            [string]$Path,
+            [string]$PreviousReleaseReference
+        )
+
+        $parameters = @{
+            Path          = $Path
+            RepositoryUrl = 'https://github.com/example/repo'
+            Force         = $true
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($PreviousReleaseReference)) {
+            $parameters.PreviousReleaseReference = $PreviousReleaseReference
+        }
+
+        Initialize-KeepAChangelogFile @parameters | Out-Null
+    }
+
+    $script:SetReleaseReadyChangelog = {
+        param(
+            [Parameter(Mandatory)]
+            [string]$Path,
+            [Parameter(Mandatory)]
+            [pscustomobject]$LatestRelease
+        )
+
+        @"
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Fixed CLI parsing.
+
+## [$($LatestRelease.Version)] - $($LatestRelease.Date)
+
+### Added
+
+$($LatestRelease.Note)
+
+[Unreleased]: https://github.com/example/repo/compare/$($LatestRelease.Version)...HEAD
+[$($LatestRelease.Version)]: https://github.com/example/repo/compare/$($LatestRelease.PreviousVersion)...$($LatestRelease.Version)
+"@ | Set-Content -LiteralPath $Path -Encoding utf8
+    }
 }
 
 Describe 'Initialize-KeepAChangelogFile' {
@@ -52,34 +99,40 @@ Describe 'Initialize-KeepAChangelogFile' {
     }
 }
 
-Describe 'Test-KeepAChangelogFile' {
-    It 'returns a valid result for a generated changelog file' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
+Describe 'Get-KeepAChangelogVersion' {
+    It 'returns the loaded KeepAChangelog module version' {
+        $result = Get-KeepAChangelogVersion
 
-        Initialize-KeepAChangelogFile `
-            -Path $path `
-            -RepositoryUrl 'https://github.com/example/repo' `
-            -PreviousReleaseReference '1.0.0' `
-            -Force | Out-Null
-
-        $result = Test-KeepAChangelogFile -Path $path
-
-        $result.IsValid | Should -BeTrue
-        $result.PreviousReleaseReference | Should -Be '1.0.0'
+        $result | Should -Be ((Get-Module KeepAChangelog).Version.ToString())
     }
+}
 
-    It 'returns a valid result for a brand-new changelog without footer links' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
+Describe 'Test-KeepAChangelogFile' {
+    It 'returns a valid result for initialized changelog variants' {
+        $caseList = @(
+            @{
+                PreviousReleaseReference = '1.0.0'
+                ExpectedReference        = '1.0.0'
+            }
+            @{
+                PreviousReleaseReference = $null
+                ExpectedReference        = $null
+            }
+        )
 
-        Initialize-KeepAChangelogFile `
-            -Path $path `
-            -RepositoryUrl 'https://github.com/example/repo' `
-            -Force | Out-Null
+        foreach ($case in $caseList) {
+            $path = Join-Path $TestDrive "CHANGELOG-$($case.ExpectedReference ?? 'new').md"
+            & $script:InitializeTestChangelog -Path $path -PreviousReleaseReference $case.PreviousReleaseReference
+            $result = Test-KeepAChangelogFile -Path $path
 
-        $result = Test-KeepAChangelogFile -Path $path
+            $result.IsValid | Should -BeTrue
+            if ($null -eq $case.ExpectedReference) {
+                $result.PreviousReleaseReference | Should -BeNullOrEmpty
+                continue
+            }
 
-        $result.IsValid | Should -BeTrue
-        $result.PreviousReleaseReference | Should -BeNullOrEmpty
+            $result.PreviousReleaseReference | Should -Be $case.ExpectedReference
+        }
     }
 
     It 'reports a missing Unreleased section as invalid' {
@@ -182,6 +235,7 @@ Describe 'Move-UnreleasedChangelog' {
         $updated | Should -Match '(?s)## \[Unreleased\]\s+### Added\s+### Fixed'
         $updated | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/1\.6\.0\.\.\.HEAD'
         $updated | Should -Match '\[1\.6\.0\]: https://github\.com/example/repo/compare/1\.5\.0\.\.\.1\.6\.0'
+        $result.KeepAChangelogVersion | Should -Be (Get-KeepAChangelogVersion)
     }
 
     It 'supports simple unreleased notes without subsection headings' {
@@ -243,6 +297,38 @@ Describe 'Move-UnreleasedChangelog' {
         ([regex]::Matches($updated, '(?m)^\[1\.6\.0\]:').Count) | Should -Be 1
     }
 
+    It 'reuses the last remaining release reference when the same version is released again' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Release notes moved back for editing.
+
+## [0.0.1] - 2026-05-01
+
+### Added
+
+- Initial release.
+
+[Unreleased]: https://github.com/example/repo/compare/0.1.0...HEAD
+[0.0.1]: https://github.com/example/repo/compare/develop...0.0.1
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Move-UnreleasedChangelog -Path $path -Version '0.1.0' -Date '2026-05-04'
+        $updated = Get-Content -LiteralPath $path -Raw
+
+        $result.PreviousReleaseReference | Should -Be '0.0.1'
+        $result.NewReleaseCompareLink | Should -Be 'https://github.com/example/repo/compare/0.0.1...0.1.0'
+        $updated | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.HEAD'
+        $updated | Should -Match '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.0\.1\.\.\.0\.1\.0'
+        $updated | Should -Not -Match '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.0\.1\.0'
+    }
+
     It 'adds footer links on the first release when the changelog started without a previous release reference' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
@@ -297,16 +383,75 @@ Describe 'Move-UnreleasedChangelog' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
         $currentDate = Get-Date -Format 'yyyy-MM-dd'
 
-        Initialize-KeepAChangelogFile `
-            -Path $path `
-            -RepositoryUrl 'https://github.com/example/repo' `
-            -PreviousReleaseReference '1.0.0' `
-            -Force | Out-Null
+        & $script:InitializeTestChangelog -Path $path -PreviousReleaseReference '1.0.0'
 
         $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0'
 
         $result.Release.Tag | Should -Be '1.6.0'
         $result.Release.Date | Should -Be $currentDate
+    }
+
+    It 'enforces release date ordering against the latest existing release' {
+        $caseList = @(
+            @{
+                Name             = 'earlier date'
+                ReleaseDate      = '2026-05-01'
+                ExpectedMessage  = "Release.Date '2026-05-01' cannot be earlier than latest existing release date '2026-05-02'."
+                ShouldThrow      = $true
+            }
+            @{
+                Name             = 'equal date'
+                ReleaseDate      = '2026-05-02'
+                ExpectedDate     = '2026-05-02'
+                ShouldThrow      = $false
+            }
+        )
+
+        foreach ($case in $caseList) {
+            $path = Join-Path $TestDrive "CHANGELOG-$($case.Name -replace ' ', '-').md"
+            & $script:SetReleaseReadyChangelog `
+                -Path $path `
+                -LatestRelease ([pscustomobject]@{
+                    Version         = '1.5.0'
+                    Date            = '2026-05-02'
+                    PreviousVersion = '1.4.0'
+                    Note            = '- Previous release notes.'
+                })
+
+            if ($case.ShouldThrow) {
+                {
+                    Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date $case.ReleaseDate
+                } | Should -Throw $case.ExpectedMessage
+                continue
+            }
+
+            $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date $case.ReleaseDate
+            $result.Release.Date | Should -Be $case.ExpectedDate
+        }
+    }
+
+    It 'rejects the resolved current date when it is earlier than the latest existing release date' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+        $currentDate = Get-Date -Format 'yyyy-MM-dd'
+        $errorMessage = $null
+
+        & $script:SetReleaseReadyChangelog `
+            -Path $path `
+            -LatestRelease ([pscustomobject]@{
+                Version         = '9.9.9'
+                Date            = '2999-01-01'
+                PreviousVersion = '9.9.8'
+                Note            = '- Future release placeholder.'
+            })
+
+        try {
+            Move-UnreleasedChangelog -Path $path -Version '10.0.0'
+        }
+        catch {
+            $errorMessage = $_.Exception.Message
+        }
+
+        $errorMessage | Should -Be "Release.Date '$currentDate' cannot be earlier than latest existing release date '2999-01-01'."
     }
 
     It 'rejects an explicit Date with the wrong format' {

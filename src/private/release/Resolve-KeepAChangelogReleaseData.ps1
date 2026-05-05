@@ -14,6 +14,10 @@ function Get-KeepAChangelogRepositoryContext {
     [CmdletBinding()]
     param(
         [string]$RepositoryUrl,
+        [AllowEmptyString()]
+        [string]$Footer,
+        [Parameter(Mandatory)]
+        [pscustomobject]$Release,
         [Parameter(Mandatory)]
         [pscustomobject]$Validation
     )
@@ -38,10 +42,15 @@ function Get-KeepAChangelogRepositoryContext {
         $normalizedRepositoryUrl = $unreleasedCompareLinkPrefix -replace '/compare/$', ''
     }
 
+    $previousReleaseReference = Get-KeepAChangelogPreviousReleaseReference `
+        -Footer $Footer `
+        -Validation $Validation `
+        -Release $Release
+
     return [pscustomobject]@{
         RepositoryUrl               = $normalizedRepositoryUrl
         UnreleasedCompareLinkPrefix = $unreleasedCompareLinkPrefix
-        PreviousReleaseReference    = $Validation.PreviousReleaseReference
+        PreviousReleaseReference    = $previousReleaseReference
     }
 }
 
@@ -105,8 +114,13 @@ function Resolve-KeepAChangelogReleaseData {
     $validation = Get-KeepAChangelogValidationResult -Text $Text
     Assert-KeepAChangelogValidation -Validation $validation
     $parts = Split-KeepAChangelogText -Text $Text
+    Assert-KeepAChangelogReleaseDateOrder -Body $parts.Body -Release $normalizedRelease
     $unreleasedSectionMatch = Get-UnreleasedSectionMatch -Text $parts.Body
-    $repositoryContext = Get-KeepAChangelogRepositoryContext -RepositoryUrl $RepositoryUrl -Validation $validation
+    $repositoryContext = Get-KeepAChangelogRepositoryContext `
+        -RepositoryUrl $RepositoryUrl `
+        -Footer $parts.Footer `
+        -Release $normalizedRelease `
+        -Validation $validation
     $unreleasedBody = $unreleasedSectionMatch.Groups['body'].Value.Trim()
     $releaseNotesBody = Get-ChangelogReleaseNotesBody -Body $unreleasedBody
     $clearedUnreleasedBody = Get-ClearedUnreleasedBody -Body $unreleasedBody
