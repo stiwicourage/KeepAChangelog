@@ -99,6 +99,14 @@ Describe 'Initialize-KeepAChangelogFile' {
     }
 }
 
+Describe 'Get-KeepAChangelogVersion' {
+    It 'returns the loaded KeepAChangelog module version' {
+        $result = Get-KeepAChangelogVersion
+
+        $result | Should -Be ((Get-Module KeepAChangelog).Version.ToString())
+    }
+}
+
 Describe 'Test-KeepAChangelogFile' {
     It 'returns a valid result for initialized changelog variants' {
         $caseList = @(
@@ -227,6 +235,7 @@ Describe 'Move-UnreleasedChangelog' {
         $updated | Should -Match '(?s)## \[Unreleased\]\s+### Added\s+### Fixed'
         $updated | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/1\.6\.0\.\.\.HEAD'
         $updated | Should -Match '\[1\.6\.0\]: https://github\.com/example/repo/compare/1\.5\.0\.\.\.1\.6\.0'
+        $result.KeepAChangelogVersion | Should -Be (Get-KeepAChangelogVersion)
     }
 
     It 'supports simple unreleased notes without subsection headings' {
