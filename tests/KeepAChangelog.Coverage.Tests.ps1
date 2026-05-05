@@ -198,6 +198,42 @@ Describe 'Private helper coverage' {
             $result | Should -BeNullOrEmpty
         }
     }
+
+    It 'returns the latest existing release date from the changelog body' {
+        InModuleScope KeepAChangelog {
+            $result = Get-KeepAChangelogLatestReleaseDate -Body @'
+## [Unreleased]
+
+## [1.1.0] - 2026-05-02
+
+## [1.0.0] - 2026-05-01
+'@
+
+            $result | Should -Be '2026-05-02'
+        }
+    }
+
+    It 'returns null when no released versions exist yet' {
+        InModuleScope KeepAChangelog {
+            $result = Get-KeepAChangelogLatestReleaseDate -Body @'
+## [Unreleased]
+
+### Added
+'@
+
+            $result | Should -BeNullOrEmpty
+        }
+    }
+
+    It 'allows first-release date ordering when no previous release exists' {
+        InModuleScope KeepAChangelog {
+            {
+                Assert-KeepAChangelogReleaseDateOrder -Body '## [Unreleased]' -Release ([pscustomobject]@{
+                    Date = '2026-05-03'
+                })
+            } | Should -Not -Throw
+        }
+    }
 }
 
 Describe 'Validation result edge cases' {

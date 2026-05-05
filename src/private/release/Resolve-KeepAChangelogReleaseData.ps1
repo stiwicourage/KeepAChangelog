@@ -114,6 +114,7 @@ function Resolve-KeepAChangelogReleaseData {
     $validation = Get-KeepAChangelogValidationResult -Text $Text
     Assert-KeepAChangelogValidation -Validation $validation
     $parts = Split-KeepAChangelogText -Text $Text
+    Assert-KeepAChangelogReleaseDateOrder -Body $parts.Body -Release $normalizedRelease
     $unreleasedSectionMatch = Get-UnreleasedSectionMatch -Text $parts.Body
     $repositoryContext = Get-KeepAChangelogRepositoryContext `
         -RepositoryUrl $RepositoryUrl `
