@@ -1,7 +1,7 @@
 {
   "ProjectName": "KeepAChangelog",
   "Description": "PowerShell helpers for creating, validating, and releasing Keep a Changelog files.",
-  "Version": "0.1.3-preview",
+  "Version": "0.2.0",
   "Preamble": [
     "Set-StrictMode -Version Latest"
   ],
