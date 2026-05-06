@@ -172,6 +172,38 @@ Describe 'Private helper coverage' {
         $result | Should -Be 'Plain text line'
     }
 
+    It 'does not add blank tag-message lines when blank lines are not allowed yet' {
+        InModuleScope KeepAChangelog {
+            $lineList = [System.Collections.Generic.List[string]]::new()
+
+            $result = Add-ChangelogTagMessageBlankLine -LineList $lineList -AllowBlankLine $false
+
+            $result | Should -BeFalse
+            $lineList.Count | Should -Be 0
+        }
+    }
+
+    It 'normalizes tag-message lines for headings, bullets, and plain text' {
+        InModuleScope KeepAChangelog {
+            (Get-ChangelogTagMessageLine -TrimmedLine '### Fixed') | Should -Be 'Fixed'
+            (Get-ChangelogTagMessageLine -TrimmedLine '- Fixed CLI parsing.') | Should -Be 'Fixed CLI parsing.'
+            (Get-ChangelogTagMessageLine -TrimmedLine 'Plain text line') | Should -Be 'Plain text line'
+        }
+    }
+
+    It 'removes trailing blank tag-message lines' {
+        InModuleScope KeepAChangelog {
+            $lineList = [System.Collections.Generic.List[string]]::new()
+            $null = $lineList.Add('Fixed')
+            $null = $lineList.Add('')
+            $null = $lineList.Add(' ')
+
+            Remove-ChangelogTagMessageTrailingBlanks -LineList $lineList
+
+            $lineList | Should -Be @('Fixed')
+        }
+    }
+
     It 'extracts the target from release tag links' {
         InModuleScope KeepAChangelog {
             $result = Get-ChangelogReleaseTargetReference -Link 'https://github.com/example/repo/releases/tag/1.0.0'
