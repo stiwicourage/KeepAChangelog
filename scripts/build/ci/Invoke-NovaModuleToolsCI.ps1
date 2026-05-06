@@ -48,7 +48,7 @@ New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 Import-Module NovaModuleTools -ErrorAction Stop
 Import-Module Pester -ErrorAction Stop
 
-Invoke-NovaBuild
+Invoke-NovaBuild -OverrideWarning
 
 $projectInfo = Get-NovaProjectInfo
 
