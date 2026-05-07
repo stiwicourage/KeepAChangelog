@@ -1,4 +1,4 @@
-function Get-KeepAChangelogHeadingLines {
+function Get-KeepAChangelogHeadingLineList {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]

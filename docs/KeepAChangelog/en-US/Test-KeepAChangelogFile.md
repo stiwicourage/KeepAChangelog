@@ -28,7 +28,7 @@ PS> Test-KeepAChangelogFile [-Path <string>] [-ThrowOnError] [<CommonParameters>
 `Test-KeepAChangelogFile` reads a changelog and validates:
 
 - the presence of `## [Unreleased]`
-- the `[Unreleased]` compare link when release links exist
+- the `[Unreleased]` compare link when a reference-link footer is present
 - versioned release headings in `## [<version>] - <date>` format
 - duplicate reference-link labels
 

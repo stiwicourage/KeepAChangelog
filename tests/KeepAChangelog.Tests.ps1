@@ -157,7 +157,7 @@ Describe 'Test-KeepAChangelogFile' {
         $result.Errors | Should -Contain 'Could not find ## [Unreleased] section in CHANGELOG.md.'
     }
 
-    It 'reports missing footer links as invalid once releases exist' {
+    It 'accepts release sections without footer links' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
         @'
@@ -176,8 +176,11 @@ Describe 'Test-KeepAChangelogFile' {
 
         $result = Test-KeepAChangelogFile -Path $path
 
-        $result.IsValid | Should -BeFalse
-        $result.Errors | Should -Contain 'CHANGELOG.md must end with reference links once releases exist.'
+        $result.IsValid | Should -BeTrue
+        @($result.Errors).Count | Should -Be 0
+        $result.UnreleasedCompareLinkPrefix | Should -BeNullOrEmpty
+        $result.PreviousReleaseReference | Should -BeNullOrEmpty
+        @($result.ReleaseVersions) | Should -Be @('1.0.0')
     }
 
     It 'accepts yanked release headings that follow the Keep a Changelog format' {
