@@ -180,6 +180,34 @@ Describe 'Test-KeepAChangelogFile' {
         $result.Errors | Should -Contain 'CHANGELOG.md must end with reference links once releases exist.'
     }
 
+    It 'accepts yanked release headings that follow the Keep a Changelog format' {
+        $path = Join-Path $TestDrive 'CHANGELOG-YANKED.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+## [2.2.0] - 2026-05-06 [YANKED]
+
+### Fixed
+
+- Yanked because of a release regression.
+
+[Unreleased]: https://github.com/example/repo/compare/2.2.0...HEAD
+[2.2.0]: https://github.com/example/repo/releases/tag/2.2.0
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Test-KeepAChangelogFile -Path $path
+
+        $result.IsValid | Should -BeTrue
+        $result.Errors.Count | Should -Be 0
+        @($result.ReleaseVersions) | Should -Be @('2.2.0')
+        $result.PreviousReleaseReference | Should -Be '2.2.0'
+    }
+
     It 'throws the validation errors when ThrowOnError is used' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
         $errorMessage = $null
