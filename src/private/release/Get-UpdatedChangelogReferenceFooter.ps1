@@ -93,6 +93,20 @@ function Get-UpdatedChangelogReferenceFooter {
         [pscustomobject]$Context
     )
 
+    $shouldWriteReferenceFooter = $true
+    if ($Context.PSObject.Properties.Name -contains 'ShouldWriteReferenceFooter') {
+        $shouldWriteReferenceFooter = [bool]$Context.ShouldWriteReferenceFooter
+    }
+
+    if (-not $shouldWriteReferenceFooter) {
+        return [pscustomobject]@{
+            Footer               = ''
+            UpdatedUnreleasedLink = $null
+            NewReleaseCompareLink = $null
+            NewReleaseLink        = $null
+        }
+    }
+
     $referenceLinkData = Get-ChangelogReferenceLinkData -Footer $Footer
     $orderedLabelList = $referenceLinkData.OrderedLabelList
     $linkMap = $referenceLinkData.LinkMap

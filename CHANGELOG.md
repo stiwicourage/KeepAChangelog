@@ -16,13 +16,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Fixed `Test-KeepAChangelogFile` so changelogs with valid `Unreleased` and dated release headings can stay valid even when they intentionally omit footer reference links.
+- Fixed `Move-UnreleasedChangelog` so changelogs that intentionally omit footer reference links can still promote `Unreleased` notes without requiring `-RepositoryUrl`.
+
 ### Security
 
 ## [0.2.2] - 2026-05-07
 
 ### Fixed
 
-- Fixed `Test-KeepAChangelogFile` so changelogs with valid `Unreleased` and dated release headings can stay valid even when they intentionally omit footer reference links.
 - Fixed `Test-KeepAChangelogFile` so yanked release headings like `## [2.2.0] - 2026-05-06 [YANKED]` are accepted as valid Keep a Changelog release sections.
 
 ## [0.2.1] - 2026-05-06

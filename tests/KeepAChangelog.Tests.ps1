@@ -387,9 +387,8 @@ Describe 'Move-UnreleasedChangelog' {
         $updated | Should -Match '\[1\.0\.0\]: https://github\.com/example/repo/releases/tag/1\.0\.0'
     }
 
-    It 'requires RepositoryUrl for the first release when the changelog has no compare link yet' {
+    It 'keeps footer links omitted when RepositoryUrl is omitted on the first release' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
-        $errorMessage = $null
 
         @'
 # Changelog
@@ -401,13 +400,44 @@ Describe 'Move-UnreleasedChangelog' {
 - Initial release notes.
 '@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        try {
-            Move-UnreleasedChangelog -Path $path -Version '1.0.0' -Date '2026-05-01'
-        } catch {
-            $errorMessage = $_.Exception.Message
-        }
+        $result = Move-UnreleasedChangelog -Path $path -Version '1.0.0' -Date '2026-05-01'
+        $updated = Get-Content -LiteralPath $path -Raw
 
-        $errorMessage | Should -Be 'RepositoryUrl is required for the first release when CHANGELOG.md has no [Unreleased] compare link.'
+        $result.UpdatedUnreleasedLink | Should -BeNullOrEmpty
+        $result.NewReleaseCompareLink | Should -BeNullOrEmpty
+        $result.NewReleaseLink | Should -BeNullOrEmpty
+        $updated | Should -Not -Match '(?m)^\[Unreleased\]:'
+        $updated | Should -Not -Match '(?m)^\[1\.0\.0\]:'
+    }
+
+    It 'keeps footer links omitted when releasing a changelog that already has releases but no footer' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Follow-up release notes.
+
+## [1.5.0] - 2026-04-10
+
+### Added
+
+- Previous release notes.
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30'
+        $updated = Get-Content -LiteralPath $path -Raw
+
+        $result.UpdatedUnreleasedLink | Should -BeNullOrEmpty
+        $result.NewReleaseCompareLink | Should -BeNullOrEmpty
+        $result.NewReleaseLink | Should -BeNullOrEmpty
+        $updated | Should -Match '## \[1\.6\.0\] - 2026-04-30'
+        $updated | Should -Not -Match '(?m)^\[Unreleased\]:'
+        $updated | Should -Not -Match '(?m)^\[1\.6\.0\]:'
     }
 
     It 'uses the version as the tag and the current date when Date is omitted' {
