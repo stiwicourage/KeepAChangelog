@@ -303,7 +303,32 @@ Describe 'Validation result edge cases' {
 [1.0.0]: https://github.com/example/repo/releases/tag/1.0.0
 '@
 
-            $result.Errors | Should -Contain "Release section '## [1.0.0]' must use '## [<version>] - <date>' format."
+            $result.Errors | Should -Contain "Release section '## [1.0.0]' must use '## [<version>] - <date>' format, optionally followed by ' [YANKED]'."
+        }
+    }
+
+    It 'accepts yanked release sections that follow the Keep a Changelog heading format' {
+        InModuleScope KeepAChangelog {
+            $result = Get-KeepAChangelogValidationResult -Text @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+## [1.0.0] - 2026-04-30 [YANKED]
+
+### Fixed
+
+- Yanked because of a release regression.
+
+[Unreleased]: https://github.com/example/repo/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/example/repo/releases/tag/1.0.0
+'@
+
+            $result.IsValid | Should -BeTrue
+            $result.Errors.Count | Should -Be 0
+            @($result.ReleaseVersions) | Should -Be @('1.0.0')
         }
     }
 

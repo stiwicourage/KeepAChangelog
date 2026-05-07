@@ -17,8 +17,8 @@ function Get-KeepAChangelogReleaseVersionList {
         }
 
         $line = $releaseHeadingLine.Value.TrimEnd()
-        if ($line -notmatch '^## \[[^\]]+\] - \d{4}-\d{2}-\d{2}$') {
-            $ErrorList.Add("Release section '$line' must use '## [<version>] - <date>' format.")
+        if ($line -notmatch '^## \[[^\]]+\] - \d{4}-\d{2}-\d{2}( \[YANKED\])?$') {
+            $ErrorList.Add("Release section '$line' must use '## [<version>] - <date>' format, optionally followed by ' [YANKED]'.")
             continue
         }
 
