@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Fixed `Test-KeepAChangelogFile` so yanked release headings like `## [2.2.0] - 2026-05-06 [YANKED]` are accepted as valid Keep a Changelog release sections.
+
 ### Security
 
 ## [0.2.1] - 2026-05-06
@@ -63,4 +65,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.2.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/stiwicourage/KeepAChangelog/compare/103d84a...0.1.1
-
