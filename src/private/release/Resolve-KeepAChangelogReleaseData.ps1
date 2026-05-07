@@ -30,11 +30,19 @@ function Get-KeepAChangelogRepositoryContext {
     }
 
     $unreleasedCompareLinkPrefix = $Validation.UnreleasedCompareLinkPrefix
-    if ([string]::IsNullOrWhiteSpace($unreleasedCompareLinkPrefix)) {
-        if ([string]::IsNullOrWhiteSpace($normalizedRepositoryUrl)) {
-            throw 'RepositoryUrl is required for the first release when CHANGELOG.md has no [Unreleased] compare link.'
-        }
+    $shouldWriteReferenceFooter = (-not [string]::IsNullOrWhiteSpace($unreleasedCompareLinkPrefix)) -or `
+        (-not [string]::IsNullOrWhiteSpace($normalizedRepositoryUrl))
 
+    if (-not $shouldWriteReferenceFooter) {
+        return [pscustomobject]@{
+            RepositoryUrl               = $null
+            UnreleasedCompareLinkPrefix = $null
+            PreviousReleaseReference    = $null
+            ShouldWriteReferenceFooter  = $false
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($unreleasedCompareLinkPrefix)) {
         $unreleasedCompareLinkPrefix = "$normalizedRepositoryUrl/compare/"
     }
 
@@ -51,6 +59,7 @@ function Get-KeepAChangelogRepositoryContext {
         RepositoryUrl               = $normalizedRepositoryUrl
         UnreleasedCompareLinkPrefix = $unreleasedCompareLinkPrefix
         PreviousReleaseReference    = $previousReleaseReference
+        ShouldWriteReferenceFooter  = $true
     }
 }
 
@@ -135,7 +144,14 @@ function Resolve-KeepAChangelogReleaseData {
         -Footer $parts.Footer `
         -Release $normalizedRelease `
         -Context $repositoryContext
-    $updatedText = ($updatedBody + "`n`n" + $updatedFooterData.Footer).TrimEnd() + "`n"
+    $updatedText = @(
+        $updatedBody
+        $updatedFooterData.Footer
+    ) |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        ForEach-Object { $_.TrimEnd() } |
+        Join-String -Separator "`n`n"
+    $updatedText = $updatedText.TrimEnd() + "`n"
 
     return [pscustomobject]@{
         Release                     = $normalizedRelease

@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Fixed `Test-KeepAChangelogFile` so changelogs with valid `Unreleased` and dated release headings can stay valid even when they intentionally omit footer reference links.
+- Fixed `Move-UnreleasedChangelog` so changelogs that intentionally omit footer reference links can still promote `Unreleased` notes without requiring `-RepositoryUrl`.
+
 ### Security
 
 ## [0.2.3] - 2026-05-07
@@ -74,4 +77,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.2.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/stiwicourage/KeepAChangelog/compare/103d84a...0.1.1
-

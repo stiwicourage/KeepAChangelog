@@ -454,4 +454,23 @@ Describe 'Validation result edge cases' {
             $result.Errors | Should -Contain 'CHANGELOG.md must contain exactly one [Unreleased] compare link.'
         }
     }
+
+    It 'returns an empty footer update when no footer links should be written' {
+        InModuleScope KeepAChangelog {
+            $result = Get-UpdatedChangelogReferenceFooter `
+                -Footer '' `
+                -Release ([pscustomobject]@{
+                    Tag     = '1.0.0'
+                    Version = '1.0.0'
+                }) `
+                -Context ([pscustomobject]@{
+                    ShouldWriteReferenceFooter = $false
+                })
+
+            $result.Footer | Should -Be ''
+            $result.UpdatedUnreleasedLink | Should -BeNullOrEmpty
+            $result.NewReleaseCompareLink | Should -BeNullOrEmpty
+            $result.NewReleaseLink | Should -BeNullOrEmpty
+        }
+    }
 }
