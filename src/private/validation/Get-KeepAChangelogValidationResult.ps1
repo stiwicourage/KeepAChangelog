@@ -16,10 +16,6 @@ function Get-KeepAChangelogValidationResult {
         -ErrorList $errorList
     $hasReferenceFooter = -not [string]::IsNullOrWhiteSpace($parts.Footer)
 
-    if (-not $hasReferenceFooter -and $releaseVersionList.Count -gt 0) {
-        $errorList.Add('CHANGELOG.md must end with reference links once releases exist.')
-    }
-
     $referenceLabelCountMap = Get-KeepAChangelogReferenceLabelCountMap -Footer $parts.Footer
     Add-KeepAChangelogDuplicateReferenceLinkError `
         -ReferenceLabelCountMap $referenceLabelCountMap `

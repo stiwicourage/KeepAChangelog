@@ -1,4 +1,4 @@
-function New-KeepAChangelogTemplate {
+function Get-KeepAChangelogTemplateText {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -19,7 +19,7 @@ function New-KeepAChangelogTemplate {
         ''
         '## [Unreleased]'
         ''
-        (Get-KeepAChangelogHeadingLines -SectionHeading $SectionHeading)
+        (Get-KeepAChangelogHeadingLineList -SectionHeading $SectionHeading)
         $footerLine
     ) | Where-Object { $null -ne $_ }
 
