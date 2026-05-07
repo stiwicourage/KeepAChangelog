@@ -198,7 +198,7 @@ Describe 'Private helper coverage' {
             $null = $lineList.Add('')
             $null = $lineList.Add(' ')
 
-            Remove-ChangelogTagMessageTrailingBlanks -LineList $lineList
+            $lineList = Get-TrimmedChangelogTagMessageLineList -LineList $lineList
 
             $lineList | Should -Be @('Fixed')
         }
@@ -382,6 +382,30 @@ Describe 'Validation result edge cases' {
 '@
 
             $result.Errors | Should -Contain 'Reference link [1.0.0] is duplicated.'
+        }
+    }
+
+    It 'accepts release sections when no footer reference links are present' {
+        InModuleScope KeepAChangelog {
+            $result = Get-KeepAChangelogValidationResult -Text @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+## [1.0.0] - 2026-04-30
+
+### Added
+
+- Initial release.
+'@
+
+            $result.IsValid | Should -BeTrue
+            @($result.Errors).Count | Should -Be 0
+            $result.UnreleasedCompareLinkPrefix | Should -BeNullOrEmpty
+            $result.PreviousReleaseReference | Should -BeNullOrEmpty
+            @($result.ReleaseVersions) | Should -Be @('1.0.0')
         }
     }
 

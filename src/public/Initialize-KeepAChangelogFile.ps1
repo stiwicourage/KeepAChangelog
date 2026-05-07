@@ -16,7 +16,7 @@ function Initialize-KeepAChangelogFile {
 
     Assert-KeepAChangelogInitialization -Path $Path -RepositoryUrl $RepositoryUrl -Force $Force.IsPresent
     $normalizedRepositoryUrl = $RepositoryUrl.TrimEnd('/')
-    $template = New-KeepAChangelogTemplate `
+    $template = Get-KeepAChangelogTemplateText `
         -RepositoryUrl $normalizedRepositoryUrl `
         -PreviousReleaseReference $PreviousReleaseReference `
         -SectionHeading $SectionHeading

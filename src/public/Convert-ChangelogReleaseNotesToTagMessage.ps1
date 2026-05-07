@@ -21,6 +21,6 @@ function Convert-ChangelogReleaseNotesToTagMessage {
         $allowBlankLine = $true
     }
 
-    Remove-ChangelogTagMessageTrailingBlanks -LineList $lineList
+    $lineList = Get-TrimmedChangelogTagMessageLineList -LineList $lineList
     return ($lineList -join "`n").Trim()
 }

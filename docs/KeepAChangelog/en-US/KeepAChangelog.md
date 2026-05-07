@@ -32,7 +32,7 @@ Creates a changelog template with standard Keep a Changelog headings and the req
 
 ### `PS> Test-KeepAChangelogFile`
 
-Validates that a changelog contains the required `## [Unreleased]` section, reference links, and release-heading format.
+Validates that a changelog contains the required `## [Unreleased]` section, optional reference links when present, and release-heading format.
 
 ### `PS> Move-UnreleasedChangelog`
 
