@@ -33,12 +33,12 @@ The command:
 2. removes empty `###` subsections from the new release notes
 3. inserts `## [<version>] - <date>` below `## [Unreleased]`
 4. clears `Unreleased` while keeping subsection headings
-5. updates the `[Unreleased]` compare link to `<tag>...HEAD`
-6. adds or updates the `[<version>]` release link from the previous release reference to the new tag
+5. updates the `[Unreleased]` compare link to `<tag>...HEAD` when a reference-link footer exists or `-RepositoryUrl` is supplied
+6. adds or updates the `[<version>]` release link from the previous release reference to the new tag when footer links are being maintained
 
 `-Version` is required. `-Date` is optional. When `-Date` is omitted, the current date is used. When `-Date` is provided, it must use `yyyy-MM-dd` format.
 
-If the changelog has no footer yet because it started as a brand-new project, pass `-RepositoryUrl` on the first release so the footer links can be created.
+If the changelog has no footer and you want footer links to be created or maintained, pass `-RepositoryUrl`. If you omit it, the release move still runs and the changelog stays without footer links.
 
 The returned object also includes `KeepAChangelogVersion` so CI logs and troubleshooting output
 can show which module version produced the release data.
@@ -77,7 +77,7 @@ Optional release date in `yyyy-MM-dd` format.
 
 ### -RepositoryUrl
 
-Optional repository base URL used to create footer links on the first release when the changelog has no `[Unreleased]` compare link yet.
+Optional repository base URL used to create or maintain footer links when the changelog has no `[Unreleased]` compare link yet.
 
 ### CommonParameters
 

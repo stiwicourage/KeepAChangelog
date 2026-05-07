@@ -107,7 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
           </h3>
 
           <p>
-            The module keeps the <code>Unreleased</code> section, compare links, release headings,
+            The module keeps the <code>Unreleased</code> section, optional compare links, release headings,
             and release-note formatting consistent so you do not have to.
           </p>
 
@@ -140,7 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             <li>Include an optional <code>[Unreleased]</code> compare link footer when a previous release reference exists.</li>
             <li>Validate an existing changelog and return structured errors when the file does not follow the expected format.</li>
             <li>Move unreleased notes into a new release section and clear the unreleased body for the next cycle.</li>
-            <li>Update compare links and release links automatically as part of the release move.</li>
+            <li>Update compare links and release links automatically as part of the release move when footer links are being maintained.</li>
             <li>Convert markdown release notes into a plain-text tag message for git tags or release automation.</li>
           </ul>
 
@@ -284,7 +284,7 @@ $result.Errors</code></pre>
 
           <p>
             Promote the current <code>## [Unreleased]</code> notes into a new versioned release
-            section and update the compare links.
+            section and optionally update the compare links.
           </p>
 
           <pre><code>Move-UnreleasedChangelog `

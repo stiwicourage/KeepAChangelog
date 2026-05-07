@@ -20,7 +20,7 @@ KeepAChangelog helps you create, validate, and release changelog files that foll
 Use the module when you want a repeatable PowerShell workflow for:
 
 - creating a changelog template with `## [Unreleased]`
-- validating required compare links and release headings
+- validating optional compare links when present and release headings
 - promoting unreleased notes into a versioned release section
 - generating plain-text tag messages from markdown release notes
 
@@ -36,7 +36,7 @@ Validates that a changelog contains the required `## [Unreleased]` section, opti
 
 ### `PS> Move-UnreleasedChangelog`
 
-Moves the current `Unreleased` content into a versioned release section and updates compare links.
+Moves the current `Unreleased` content into a versioned release section and can update compare links when footer links are being maintained.
 
 ### `PS> Get-KeepAChangelogVersion`
 
