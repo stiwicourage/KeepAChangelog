@@ -16,6 +16,8 @@ After the first release, the footer must include:
 [Unreleased]: https://github.com/<owner>/<repo>/compare/<previous>...HEAD
 ```
 
+Footer reference links may be written as one compact block or with blank lines between the links. Both layouts are valid as long as the footer only contains reference-link lines.
+
 When the compare link exists, the module extracts:
 
 - The compare-link prefix up to `/compare/`

@@ -5,7 +5,8 @@ function Split-KeepAChangelogText {
         [string]$Text
     )
 
-    $footerMatch = [regex]::Match($Text, '(?ms)(?<footer>(?:^\[[^\]]+\]:[^\r\n]*(?:\r?\n|$))+)\s*\z')
+    $footerPattern = '(?ms)(?<footer>(?:^\[[^\]]+\]:[^\r\n]*(?:\r?\n(?:[ \t]*\r?\n)*)?)+)\s*\z'
+    $footerMatch = [regex]::Match($Text, $footerPattern)
 
     if ($footerMatch.Success) {
         return [pscustomobject]@{
