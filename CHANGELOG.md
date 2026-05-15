@@ -6,25 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-
 ### Added
-
 
 ### Changed
 
-
 ### Deprecated
-
 
 ### Removed
 
-
 ### Fixed
-- Fixed footer parsing so `Test-KeepAChangelogFile` and `Move-UnreleasedChangelog` accept valid reference-link footers even when blank lines separate the links.
-
 
 ### Security
 
+## [0.2.5] - 2026-05-15
+
+### Fixed
+
+- Fixed footer parsing so `Test-KeepAChangelogFile` and `Move-UnreleasedChangelog` accept valid reference-link footers even when blank lines separate the links.
 
 ## [0.2.4] - 2026-05-07
 ### Fixed
@@ -74,8 +72,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Created command `Initialize-KeepAChangelogFile`, allowed without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
 - Created command `Move-UnreleasedChangelog`, `-Version` is required release input, and `-Date` is optional with `yyyy-MM-dd` validation.
 
-
-[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.4...HEAD
+[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.5...HEAD
+[0.2.5]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.3...0.2.4
 [0.2.3]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.2...0.2.3
 [0.2.2]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.1...0.2.2
@@ -83,3 +81,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.2.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/stiwicourage/KeepAChangelog/compare/103d84a...0.1.1
+
