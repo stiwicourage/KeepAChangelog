@@ -1,34 +1,34 @@
-BeforeAll {
-    & (Join-Path $PSScriptRoot '..' 'scripts' 'build' 'ci' 'Import-BuiltCiModule.ps1') | Out-Null
-    $script:InitializeTestChangelog = {
-        param(
-            [Parameter(Mandatory)]
-            [string]$Path,
-            [string]$PreviousReleaseReference
-        )
+function script:Initialize-TestChangelog {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+        [string]$PreviousReleaseReference
+    )
 
-        $parameters = @{
-            Path          = $Path
-            RepositoryUrl = 'https://github.com/example/repo'
-            Force         = $true
-        }
-
-        if (-not [string]::IsNullOrWhiteSpace($PreviousReleaseReference)) {
-            $parameters.PreviousReleaseReference = $PreviousReleaseReference
-        }
-
-        Initialize-KeepAChangelogFile @parameters | Out-Null
+    $parameters = @{
+        Path          = $Path
+        RepositoryUrl = 'https://github.com/example/repo'
+        Force         = $true
     }
 
-    $script:SetReleaseReadyChangelog = {
-        param(
-            [Parameter(Mandatory)]
-            [string]$Path,
-            [Parameter(Mandatory)]
-            [pscustomobject]$LatestRelease
-        )
+    if (-not [string]::IsNullOrWhiteSpace($PreviousReleaseReference)) {
+        $parameters.PreviousReleaseReference = $PreviousReleaseReference
+    }
 
-        @"
+    Initialize-KeepAChangelogFile @parameters | Out-Null
+}
+
+function script:Set-ReleaseReadyChangelog {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+        [Parameter(Mandatory)]
+        [pscustomobject]$LatestRelease
+    )
+
+    @"
 # Changelog
 
 ## [Unreleased]
@@ -46,7 +46,22 @@ $($LatestRelease.Note)
 [Unreleased]: https://github.com/example/repo/compare/$($LatestRelease.Version)...HEAD
 [$($LatestRelease.Version)]: https://github.com/example/repo/compare/$($LatestRelease.PreviousVersion)...$($LatestRelease.Version)
 "@ | Set-Content -LiteralPath $Path -Encoding utf8
-    }
+}
+
+function script:Get-ReferenceFooterText {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$LineList,
+        [switch]$SeparateWithBlankLines
+    )
+
+    $separator = if ($SeparateWithBlankLines) { "`n`n" } else { "`n" }
+    return $LineList -join $separator
+}
+
+BeforeAll {
+    & (Join-Path $PSScriptRoot '..' 'scripts' 'build' 'ci' 'Import-BuiltCiModule.ps1') | Out-Null
 }
 
 Describe 'Initialize-KeepAChangelogFile' {
@@ -122,7 +137,7 @@ Describe 'Test-KeepAChangelogFile' {
 
         foreach ($case in $caseList) {
             $path = Join-Path $TestDrive "CHANGELOG-$($case.ExpectedReference ?? 'new').md"
-            & $script:InitializeTestChangelog -Path $path -PreviousReleaseReference $case.PreviousReleaseReference
+            Initialize-TestChangelog -Path $path -PreviousReleaseReference $case.PreviousReleaseReference
             $result = Test-KeepAChangelogFile -Path $path
 
             $result.IsValid | Should -BeTrue
@@ -184,9 +199,27 @@ Describe 'Test-KeepAChangelogFile' {
     }
 
     It 'accepts yanked release headings that follow the Keep a Changelog format' {
-        $path = Join-Path $TestDrive 'CHANGELOG-YANKED.md'
+        $caseList = @(
+            @{
+                Name                     = 'compact-footer'
+                SeparateWithBlankLines   = $false
+            }
+            @{
+                Name                     = 'spaced-footer'
+                SeparateWithBlankLines   = $true
+            }
+        )
 
-        @'
+        foreach ($case in $caseList) {
+            $path = Join-Path $TestDrive "CHANGELOG-YANKED-$($case.Name).md"
+            $footer = Get-ReferenceFooterText `
+                -LineList @(
+                    '[Unreleased]: https://github.com/example/repo/compare/2.2.0...HEAD'
+                    '[2.2.0]: https://github.com/example/repo/releases/tag/2.2.0'
+                ) `
+                -SeparateWithBlankLines:$case.SeparateWithBlankLines
+
+            @"
 # Changelog
 
 ## [Unreleased]
@@ -199,16 +232,16 @@ Describe 'Test-KeepAChangelogFile' {
 
 - Yanked because of a release regression.
 
-[Unreleased]: https://github.com/example/repo/compare/2.2.0...HEAD
-[2.2.0]: https://github.com/example/repo/releases/tag/2.2.0
-'@ | Set-Content -LiteralPath $path -Encoding utf8
+$footer
+"@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        $result = Test-KeepAChangelogFile -Path $path
+            $result = Test-KeepAChangelogFile -Path $path
 
-        $result.IsValid | Should -BeTrue
-        $result.Errors.Count | Should -Be 0
-        @($result.ReleaseVersions) | Should -Be @('2.2.0')
-        $result.PreviousReleaseReference | Should -Be '2.2.0'
+            $result.IsValid | Should -BeTrue
+            $result.Errors.Count | Should -Be 0
+            @($result.ReleaseVersions) | Should -Be @('2.2.0')
+            $result.PreviousReleaseReference | Should -Be '2.2.0'
+        }
     }
 
     It 'throws the validation errors when ThrowOnError is used' {
@@ -232,9 +265,27 @@ Describe 'Test-KeepAChangelogFile' {
 
 Describe 'Move-UnreleasedChangelog' {
     It 'moves unreleased notes into a release section, clears Unreleased, and updates compare links' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
+        $caseList = @(
+            @{
+                Name                     = 'compact-footer'
+                SeparateWithBlankLines   = $false
+            }
+            @{
+                Name                     = 'spaced-footer'
+                SeparateWithBlankLines   = $true
+            }
+        )
 
-        @'
+        foreach ($case in $caseList) {
+            $path = Join-Path $TestDrive "CHANGELOG-$($case.Name).md"
+            $footer = Get-ReferenceFooterText `
+                -LineList @(
+                    '[Unreleased]: https://github.com/example/repo/compare/1.5.0...HEAD'
+                    '[1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0'
+                ) `
+                -SeparateWithBlankLines:$case.SeparateWithBlankLines
+
+            @"
 # Changelog
 
 ## [Unreleased]
@@ -251,22 +302,24 @@ Describe 'Move-UnreleasedChangelog' {
 
 - Previous release notes.
 
-[Unreleased]: https://github.com/example/repo/compare/1.5.0...HEAD
-[1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0
-'@ | Set-Content -LiteralPath $path -Encoding utf8
+$footer
+"@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30'
-        $updated = Get-Content -LiteralPath $path -Raw
+            $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30'
+            $updated = Get-Content -LiteralPath $path -Raw
 
-        $result.ReleaseNotesBody | Should -Be "### Fixed`n`n- Fixed CLI parsing."
-        $result.ClearedUnreleasedBody | Should -Be "### Added`n`n### Fixed"
-        $result.TagMessageText | Should -Be "Fixed`n`nFixed CLI parsing."
-        $updated | Should -Match '## \[1\.6\.0\] - 2026-04-30'
-        $updated | Should -Match '(?s)## \[1\.6\.0\] - 2026-04-30\s+### Fixed\s+- Fixed CLI parsing\.\s+## \[1\.5\.0\] - 2026-04-10'
-        $updated | Should -Match '(?s)## \[Unreleased\]\s+### Added\s+### Fixed'
-        $updated | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/1\.6\.0\.\.\.HEAD'
-        $updated | Should -Match '\[1\.6\.0\]: https://github\.com/example/repo/compare/1\.5\.0\.\.\.1\.6\.0'
-        $result.KeepAChangelogVersion | Should -Be (Get-KeepAChangelogVersion)
+            $result.ReleaseNotesBody | Should -Be "### Fixed`n`n- Fixed CLI parsing."
+            $result.ClearedUnreleasedBody | Should -Be "### Added`n`n### Fixed"
+            $result.PreviousReleaseReference | Should -Be '1.5.0'
+            $result.NewReleaseCompareLink | Should -Be 'https://github.com/example/repo/compare/1.5.0...1.6.0'
+            $result.TagMessageText | Should -Be "Fixed`n`nFixed CLI parsing."
+            $updated | Should -Match '## \[1\.6\.0\] - 2026-04-30'
+            $updated | Should -Match '(?s)## \[1\.6\.0\] - 2026-04-30\s+### Fixed\s+- Fixed CLI parsing\.\s+## \[1\.5\.0\] - 2026-04-10'
+            $updated | Should -Match '(?s)## \[Unreleased\]\s+### Added\s+### Fixed'
+            $updated | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/1\.6\.0\.\.\.HEAD'
+            $updated | Should -Match '\[1\.6\.0\]: https://github\.com/example/repo/compare/1\.5\.0\.\.\.1\.6\.0'
+            $result.KeepAChangelogVersion | Should -Be (Get-KeepAChangelogVersion)
+        }
     }
 
     It 'supports simple unreleased notes without subsection headings' {
@@ -444,7 +497,7 @@ Describe 'Move-UnreleasedChangelog' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
         $currentDate = Get-Date -Format 'yyyy-MM-dd'
 
-        & $script:InitializeTestChangelog -Path $path -PreviousReleaseReference '1.0.0'
+        Initialize-TestChangelog -Path $path -PreviousReleaseReference '1.0.0'
 
         $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0'
 
@@ -470,7 +523,7 @@ Describe 'Move-UnreleasedChangelog' {
 
         foreach ($case in $caseList) {
             $path = Join-Path $TestDrive "CHANGELOG-$($case.Name -replace ' ', '-').md"
-            & $script:SetReleaseReadyChangelog `
+            Set-ReleaseReadyChangelog `
                 -Path $path `
                 -LatestRelease ([pscustomobject]@{
                     Version         = '1.5.0'
@@ -496,7 +549,7 @@ Describe 'Move-UnreleasedChangelog' {
         $currentDate = Get-Date -Format 'yyyy-MM-dd'
         $errorMessage = $null
 
-        & $script:SetReleaseReadyChangelog `
+        Set-ReleaseReadyChangelog `
             -Path $path `
             -LatestRelease ([pscustomobject]@{
                 Version         = '9.9.9'
