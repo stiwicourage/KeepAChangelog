@@ -277,10 +277,10 @@ $footer
         $updated | Should -Match '\[1\.0\.0\]: https://github\.com/example/repo/releases/tag/1\.0\.0'
     }
 
-    It 'keeps footer links omitted when RepositoryUrl is omitted on the first release' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        @'
+    It 'keeps footer links omitted for <Name>' -ForEach @(
+        @{
+            Name    = 'the first release without RepositoryUrl'
+            Text    = @'
 # Changelog
 
 ## [Unreleased]
@@ -288,15 +288,13 @@ $footer
 ### Added
 
 - Initial release notes.
-'@ | Set-Content -LiteralPath $path -Encoding utf8
-
-        Assert-OmittedFooterLinksAfterRelease -Path $path -Version '1.0.0' -Date '2026-05-01'
-    }
-
-    It 'keeps footer links omitted when releasing a changelog that already has releases but no footer' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        @'
+'@
+            Version = '1.0.0'
+            Date    = '2026-05-01'
+        }
+        @{
+            Name    = 'a changelog with existing releases but no footer'
+            Text    = @'
 # Changelog
 
 ## [Unreleased]
@@ -310,9 +308,16 @@ $footer
 ### Added
 
 - Previous release notes.
-'@ | Set-Content -LiteralPath $path -Encoding utf8
+'@
+            Version = '1.6.0'
+            Date    = '2026-04-30'
+        }
+    ) {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
 
-        Assert-OmittedFooterLinksAfterRelease -Path $path -Version '1.6.0' -Date '2026-04-30'
+        $Text | Set-Content -LiteralPath $path -Encoding utf8
+
+        Assert-OmittedFooterLinksAfterRelease -Path $path -Version $Version -Date $Date
     }
 
     It 'uses the version as the tag and the current date when Date is omitted' {
