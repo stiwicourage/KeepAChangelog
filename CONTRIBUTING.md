@@ -1,81 +1,40 @@
-## Contributing
+# Contributing
 
-[![CodeScene Hotspot Code Health](https://codescene.io/projects/79634/status-badges/hotspot-code-health)](https://codescene.io/projects/79634)
-[![CodeScene Average Code Health](https://codescene.io/projects/79634/status-badges/average-code-health)](https://codescene.io/projects/79634)
-[![codecov](https://codecov.io/github/stiwicourage/KeepAChangelog/graph/badge.svg?token=BLZP94DZKX)](https://codecov.io/github/stiwicourage/KeepAChangelog)
+Thank you for contributing. Keep changes small, reviewable, and easy to validate.
 
-**This repository is intentionally opinionated about maintainability, however, we welcome contributions that align with
-our goals. We want to keep the codebase clean, maintainable, and easy to understand for both users and contributors.**
+Before opening a pull request:
 
-If you want to contribute, please work in the same style as the project:
+- update tests when behavior changes
+- keep tests mirrored to changed source files: one focused `.Tests.ps1` file for every new or changed `src/**/*.ps1` file
+- use `tests/TestHelpers/` or test-support files for shared setup instead of broad catch-all test files
+- add or update PlatyPS-compatible help under `docs/KeepAChangelog/en-US/` when public commands or public classes change
+- when you add a new public function, create its matching help file in the same change
+- use Nova commands and `project.json` for build, test, package, and release behavior
+- keep PowerShell code, tests, and examples compatible with `project.json` `Manifest.PowerShellHostVersion`; if the project targets `5.1`, do not add PowerShell 7.x-only features
+- keep local quality checks ordered as ScriptAnalyzer, then `Invoke-NovaBuild`, then `Test-NovaBuild` when your project defines a combined wrapper
+- use `Test-NovaBuild` as the project test entrypoint; do not validate with direct `Invoke-Pester`
+- if the repository quality loop or `Invoke-ScriptAnalyzerCI.ps1` reports ScriptAnalyzer findings, fix them before you ask for review
+- follow `.github/instructions/psscriptanalyzer.instructions.md` as the ScriptAnalyzer workflow source of truth; use direct `Invoke-ScriptAnalyzer` only for focused local checks that reuse the repo-approved settings
+- keep one externally called function per file and match the file name to that function; private files may keep extra related functions only as same-file top-level support helpers, and PowerShell functions must not declare nested functions inside their bodies
+- follow `.github/instructions/code-quality-matrix.instructions.md` for source/helper-script maintainability and `.github/instructions/testing-policy.instructions.md` for test design
+- keep `docs/KeepAChangelog/en-US/*.md` as valid PlatyPS command help by using `New-MarkdownCommandHelp`, `Update-MarkdownCommandHelp`, and `Test-MarkdownCommandHelp`
+- make every changed or generated text file end immediately after exactly one newline terminator with no blank spacer line at the bottom; use `pwsh -NoLogo -NoProfile -File ./scripts/build/Test-TextFileFormatting.ps1` for a focused check, and keep `tests/TextFileFormatting.Tests.ps1` green when Pester is enabled
+- do not exclude or suppress PSScriptAnalyzer rules
+- do not hand-create module `.psm1` or module `.psd1` files in source
+- review `README.md`, `CHANGELOG.md`, and `RELEASE_NOTE.md` when the workflow or public behavior changed
+- keep PowerShell cmdlet guidance, CLI guidance, and contributor guidance clearly separated
+- validate the changed path before you ask for review
 
-- Prefer the Nova command model and user-facing `nova` workflow over legacy MT naming or mixed command styles.
-- Use the GitHub bug report form for reproducible defects, the feature request form for product/workflow ideas, and
-  `SECURITY.md` instead of a public issue for vulnerability reports.
-- Keep commits small, reviewable, and easy to understand.
-    - The size of a pull request is not as important as the clarity of its intent and the ease of reviewing it.
-    - A large pull request that is well-organized in smaller commits with clear messages can be easier to review than a
-      small pull request that is not well-explained or has unclear intent.
-- Aim for maintainable code:
-    - short functions
-    - simple branching
-    - no copy/paste duplication
-    - clear names
-    - no dead code left behind
-- Follow the Boy Scout Rule: leave the codebase a little cleaner than you found it.
+## Agentic Copilot workflow
 
-Before making larger changes, read the contributor docs in:
+Recommended flow:
 
-- [README.md](./README.md)
-
-GitHub now prefills pull requests with `.github/pull_request_template.md`.
-Use it to explain intent clearly, record what you validated, and call out any required documentation or changelog work.
-
-Pull requests against `main` and `develop` also run a CodeScene coverage-gate check when CI has produced the Cobertura coverage artifact, so PRs can be blocked when changed code falls below the configured coverage threshold.
-
-**Before opening a pull request, please run the local quality flow from the repository root:**
-
-```powershell title="run.ps1"
-#run.ps1
-Set-Location $PSScriptRoot
-
-$projectName = (Get-Content -LiteralPath (Join-Path $PSScriptRoot 'project.json') -Raw | ConvertFrom-Json).ProjectName
-$distModuleDir = Join-Path $PSScriptRoot "dist/$projectName"
-
-Invoke-NovaBuild
-& (Join-Path $PSScriptRoot 'scripts/build/Invoke-ScriptAnalyzerCI.ps1')
-Remove-Module $projectName -ErrorAction SilentlyContinue
-Import-Module $distModuleDir -Force
-
-Test-NovaBuild
-```
-
-Please also make sure your contribution includes the right kind of follow-up work:
-
-- add or update tests when behavior changes
-- update help files in `docs/` when a command changes
-- update `README.md` when repository workflow, architecture, or contributor expectations change
-- update `CHANGELOG.md` when the change is relevant to users, maintainers, or future contributors
-- keep `src/resources/example/` useful if your change affects the real-world project layout or workflow
-
-Documentation ownership is intentionally split:
-
-- GitHub repository docs are for contributors and maintainers
-- GitHub Pages content under `docs/*.html` is for end users
-- command-help markdown under `docs/<ProjectName>/` (for this repo `docs/KeepAChangelog/en-US/`) is build input
-- markdown elsewhere under `docs/` is allowed for non-help documentation because the build ignores it
-
-When updating documentation, write it for humans first. A reader should quickly understand:
-
-- what changed
-- why it changed
-- how to use it
-- whether existing behavior is affected
-
-For changelog entries, follow the existing project format:
-
-- Keep a Changelog structure
-- Semantic Versioning intent
-- reader-friendly wording under sections such as `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed` and `Security`
-
-In short: build it, analyze it, test it, document it, and leave it in better shape than you found it.
+1. **Design**
+    - Use `/agent architect`, `.github/agents/architect.agent.md`, and `.github/prompts/design-change.prompt.md` when the scope still needs analysis.
+2. **Implement**
+    - Use `/agent powershell-developer`, `.github/agents/powershell-developer.agent.md`, and `.github/prompts/implement-issue.prompt.md` to implement the agreed change.
+    - If the work is mainly about tests or coverage, use `/agent test-engineer`, `.github/agents/test-engineer.agent.md`, and `.github/prompts/improve-test-coverage.prompt.md`.
+3. **Review**
+    - Use `/agent reviewer`, `.github/agents/reviewer.agent.md`, and `.github/prompts/review-change.prompt.md` before handoff or pull request review.
+4. **Prepare release**
+    - Use `/agent release-manager`, `.github/agents/release-manager.agent.md`, and `.github/prompts/prepare-release.prompt.md` when release-facing files change.

@@ -1,14 +1,11 @@
-# Changelog
+# Release notes
 
-All notable changes to this project will be documented in this file and **PREVIEW / UNRELEASED** changes will be included in the next **stable** release!
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+This file summarizes public cmdlet, CLI, configuration, and migration changes for KeepAChangelog.
+`CHANGELOG.md` remains the exhaustive record of all changes in each release. **UNRELEASED** changes will be included in the next **stable** release!
 
 ## [Unreleased]
 
 ### Added
-
-- Added repository-scoped Agentic Copilot workflow scaffolding for maintainers, including specialized agents, reusable prompts, instruction files, skills, a streamlined pull request template, updated contribution guidance, and an internal `RELEASE_NOTE.md` placeholder for future interface-facing release summaries.
 
 ### Changed
 
