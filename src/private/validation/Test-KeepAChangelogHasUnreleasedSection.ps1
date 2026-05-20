@@ -5,5 +5,5 @@ function Test-KeepAChangelogHasUnreleasedSection {
         [string]$Body
     )
 
-    return $Body -match '(?ms)^##\s+\[Unreleased\]\s*\r?\n'
+    return [regex]::IsMatch($Body, '(?ms)^##\s+\[Unreleased\]\s*\r?\n')
 }

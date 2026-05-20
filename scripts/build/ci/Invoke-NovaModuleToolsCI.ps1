@@ -5,40 +5,53 @@ param(
 
 Set-StrictMode -Version Latest
 
-. (Join-Path $PSScriptRoot 'CodeSceneCoverageMap.ps1')
-. (Join-Path $PSScriptRoot 'CodeSceneCoverageXml.ps1')
-. (Join-Path $PSScriptRoot 'CoverageLowReport.ps1')
-
-function Get-CiTestPath {
-    param([Parameter(Mandatory)][pscustomobject]$ProjectInfo)
-
-    if ($ProjectInfo.BuildRecursiveFolders) {
-        return $ProjectInfo.TestsDir
-    }
-
-    return [System.IO.Path]::Join($ProjectInfo.TestsDir, '*.Tests.ps1')
-}
-
-function Get-CiPesterConfiguration {
+function Get-CiNUnitArtifactPath {
     param(
-        [Parameter(Mandatory)][pscustomobject]$ProjectInfo,
         [Parameter(Mandatory)][string]$ArtifactsDirectory,
-        [string[]]$ExcludedTags = @()
+        [Parameter(Mandatory)][string]$ProjectName
     )
 
-    $configuration = New-PesterConfiguration
-    $configuration.Run.Path = Get-CiTestPath -ProjectInfo $ProjectInfo
-    $configuration.Run.PassThru = $true
-    $configuration.Filter.ExcludeTag = @($ExcludedTags)
-    $configuration.TestResult.Enabled = $true
-    $configuration.TestResult.OutputFormat = 'JUnitXml'
-    $configuration.TestResult.OutputPath = (Join-Path $ArtifactsDirectory 'pester-junit.xml')
-    $configuration.CodeCoverage.Enabled = $true
-    $configuration.CodeCoverage.Path = @($ProjectInfo.ModuleFilePSM1)
-    $configuration.CodeCoverage.OutputFormat = 'Cobertura'
-    $configuration.CodeCoverage.OutputPath = (Join-Path $ArtifactsDirectory 'pester-coverage.cobertura.xml')
+    return (Join-Path $ArtifactsDirectory "$($ProjectName.ToLowerInvariant())-nunit.xml")
+}
 
-    return $configuration
+function Copy-CiArtifactIfPresent {
+    param(
+        [Parameter(Mandatory)][string]$SourcePath,
+        [Parameter(Mandatory)][string]$DestinationPath
+    )
+
+    if (-not (Test-Path -LiteralPath $SourcePath)) {
+        return
+    }
+
+    $resolvedSourcePath = (Resolve-Path -LiteralPath $SourcePath).Path
+    $destinationDirectory = Split-Path -Parent $DestinationPath
+    if (-not [string]::IsNullOrWhiteSpace($destinationDirectory)) {
+        New-Item -ItemType Directory -Path $destinationDirectory -Force | Out-Null
+    }
+
+    $resolvedDestinationPath = [System.IO.Path]::GetFullPath($DestinationPath)
+    if ($resolvedSourcePath -eq $resolvedDestinationPath) {
+        return
+    }
+
+    Copy-Item -LiteralPath $resolvedSourcePath -Destination $resolvedDestinationPath -Force
+}
+
+function Copy-CiArtifactsIfPresent {
+    param(
+        [Parameter(Mandatory)][string]$ProjectRoot,
+        [Parameter(Mandatory)][string]$ArtifactsDirectory,
+        [Parameter(Mandatory)][string]$ProjectName
+    )
+
+    $sourceArtifactsDirectory = Join-Path $ProjectRoot 'artifacts'
+    Copy-CiArtifactIfPresent `
+        -SourcePath (Join-Path $sourceArtifactsDirectory 'TestResults.xml') `
+        -DestinationPath (Get-CiNUnitArtifactPath -ArtifactsDirectory $ArtifactsDirectory -ProjectName $ProjectName)
+    Copy-CiArtifactIfPresent `
+        -SourcePath (Join-Path $sourceArtifactsDirectory 'coverage.xml') `
+        -DestinationPath (Join-Path $ArtifactsDirectory 'coverage.xml')
 }
 
 $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..' '..' '..')).Path
@@ -46,21 +59,32 @@ Set-Location $repoRoot
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 
 Import-Module NovaModuleTools -ErrorAction Stop
-Import-Module Pester -ErrorAction Stop
 
 Invoke-NovaBuild
 
 $projectInfo = Get-NovaProjectInfo
+$builtModulePath = $projectInfo.OutputModuleDir
+Remove-Module $projectInfo.ProjectName -ErrorAction SilentlyContinue
+Import-Module $builtModulePath -Force
+$projectInfo = Get-NovaProjectInfo
 
-if (-not $projectInfo.SetSourcePath) {
-    throw 'Code coverage upload requires project.json to set SetSourcePath=true so dist coverage can be remapped back to src files for CodeScene.'
+$testFailed = $false
+try {
+    if (@($ExcludeTag).Count -gt 0) {
+        Test-NovaBuild -ExcludeTagFilter $ExcludeTag
+    }
+    else {
+        Test-NovaBuild
+    }
+}
+catch {
+    $testFailed = $true
+    Write-Warning "Test-NovaBuild failed: $( $_.Exception.Message )"
+}
+finally {
+    Copy-CiArtifactsIfPresent -ProjectRoot $projectInfo.ProjectRoot -ArtifactsDirectory $OutputDirectory -ProjectName $projectInfo.ProjectName
 }
 
-$configuration = Get-CiPesterConfiguration -ProjectInfo $projectInfo -ArtifactsDirectory $OutputDirectory -ExcludedTags $ExcludeTag
-$result = Invoke-Pester -Configuration $configuration
-Convert-CoberturaCoverageToSourcePath -CoveragePath (Join-Path $OutputDirectory 'pester-coverage.cobertura.xml') -BuiltModulePath $projectInfo.ModuleFilePSM1 -RepoRoot $projectInfo.ProjectRoot
-Write-CoverageLowReport -CoveragePath (Join-Path $OutputDirectory 'pester-coverage.cobertura.xml') -OutputPath (Join-Path $OutputDirectory 'coverage-low.txt')
-
-if ($result.FailedCount -gt 0) {
+if ($testFailed) {
     exit 1
 }
