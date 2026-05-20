@@ -13,7 +13,9 @@ function Move-UnreleasedChangelog {
     )
 
     dynamicparam {
-        return Get-KeepAChangelogRepositoryProviderParameterDictionary
+        return Get-KeepAChangelogRepositoryProviderParameterDictionary `
+            -IncludeRepositoryTargetReference `
+            -IncludeReleaseReference
     }
 
     begin {
@@ -26,19 +28,25 @@ function Move-UnreleasedChangelog {
         }
 
         $releaseDate = Resolve-KeepAChangelogReleaseDate -Date $Date
+        $releaseReference = $PSBoundParameters['ReleaseReference']
         $release = @{
-            Version = $Version
-            Date    = $releaseDate
-            Tag     = $Version
+            Version   = $Version
+            Date      = $releaseDate
+            Tag       = $Version
+            Reference = if ([string]::IsNullOrWhiteSpace($releaseReference)) { $Version } else { $releaseReference }
         }
 
         $repositoryProvider = $PSBoundParameters['RepositoryProvider']
+        $repositoryTargetReference = $PSBoundParameters['RepositoryTargetReference']
+        $repositoryState = Get-KeepAChangelogRepositoryState `
+            -RepositoryUrl $RepositoryUrl `
+            -RepositoryProvider $repositoryProvider `
+            -RepositoryTargetReference $repositoryTargetReference
         $text = Get-Content -LiteralPath $Path -Raw
         $result = Resolve-KeepAChangelogReleaseData `
             -Text $text `
             -Release $release `
-            -RepositoryUrl $RepositoryUrl `
-            -RepositoryProvider $repositoryProvider
+            -RepositoryState $repositoryState
         $result | Add-Member -NotePropertyName KeepAChangelogVersion -NotePropertyValue (Get-KeepAChangelogModuleVersion) -Force
         $targetVersion = $result.Release.Version
 

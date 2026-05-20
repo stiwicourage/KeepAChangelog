@@ -10,6 +10,14 @@ function Get-ChangelogReleaseTargetReference {
         return $compareMatch.Groups['target'].Value
     }
 
+    $azureCompareMatch = [regex]::Match(
+        $Link,
+        'branchCompare\?baseVersion=.+?(?:&|&amp;)targetVersion=(?<target>.+?)(?:&|&amp;)_a=commits$'
+    )
+    if ($azureCompareMatch.Success) {
+        return $azureCompareMatch.Groups['target'].Value
+    }
+
     $tagMatch = [regex]::Match($Link, '/(?:releases/tag|-/tags)/(?<target>.+)$')
     if ($tagMatch.Success) {
         return $tagMatch.Groups['target'].Value
@@ -34,7 +42,7 @@ function Get-KeepAChangelogPreviousReleaseReference {
         return $null
     }
 
-    if ($previousReleaseReference -ne $Release.Tag) {
+    if ($previousReleaseReference -ne $Release.Reference) {
         return $previousReleaseReference
     }
 
@@ -45,7 +53,7 @@ function Get-KeepAChangelogPreviousReleaseReference {
         }
 
         $releaseTargetReference = Get-ChangelogReleaseTargetReference -Link $referenceLinkData.LinkMap[$releaseVersion]
-        if (-not [string]::IsNullOrWhiteSpace($releaseTargetReference) -and $releaseTargetReference -ne $Release.Tag) {
+        if (-not [string]::IsNullOrWhiteSpace($releaseTargetReference) -and $releaseTargetReference -ne $Release.Reference) {
             return $releaseTargetReference
         }
     }

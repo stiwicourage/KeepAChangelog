@@ -16,6 +16,17 @@ Describe 'Get-KeepAChangelogRepositoryProviderParameterDictionary' {
 
         $parameter.Name | Should -Be 'RepositoryProvider'
         $parameter.ParameterType | Should -Be ([string])
-        $validateSet.ValidValues | Should -Be @('GitHub', 'GitLab')
+        $validateSet.ValidValues | Should -Be @('GitHub', 'GitLab', 'AzureDevOps')
+    }
+
+    It 'adds the optional Azure DevOps reference parameters when requested' {
+        $result = Get-KeepAChangelogRepositoryProviderParameterDictionary `
+            -IncludeRepositoryTargetReference `
+            -IncludeReleaseReference
+
+        $result.ContainsKey('RepositoryTargetReference') | Should -BeTrue
+        $result.ContainsKey('ReleaseReference') | Should -BeTrue
+        $result['RepositoryTargetReference'].ParameterType | Should -Be ([string])
+        $result['ReleaseReference'].ParameterType | Should -Be ([string])
     }
 }

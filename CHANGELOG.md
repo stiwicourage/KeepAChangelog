@@ -9,7 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Added repository-scoped Agentic Copilot workflow scaffolding for maintainers, including specialized agents, reusable prompts, instruction files, skills, a streamlined pull request template, updated contribution guidance, and an internal `RELEASE_NOTE.md` placeholder for future interface-facing release summaries.
-- Added native GitLab footer-link support so changelog initialization, validation, and release updates can generate and preserve GitLab `/-/compare/` and `/-/tags/` URLs, including self-hosted GitLab repositories when `-RepositoryProvider GitLab` is supplied.
+- Added provider-aware footer-link support so changelog initialization, validation, and release updates can generate and preserve GitHub, GitLab, and Azure DevOps footer links.
+  - `Initialize-KeepAChangelogFile` and `Move-UnreleasedChangelog` now accept `-RepositoryProvider` when the repository host alone is not enough to identify the provider.
+  - Self-hosted GitLab repositories can use `-RepositoryProvider GitLab` to generate GitLab `/-/compare/` and `/-/tags/` links.
+  - Azure DevOps repositories can use `-RepositoryProvider AzureDevOps`, `-RepositoryTargetReference`, and `-ReleaseReference` to generate `branchCompare` footer links with explicit target and release refs.
 
 ### Changed
 

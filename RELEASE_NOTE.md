@@ -7,7 +7,10 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 
 ### Added
 
-- Added native GitLab footer-link support so `Initialize-KeepAChangelogFile` and `Move-UnreleasedChangelog` can use `-RepositoryProvider GitLab` for self-hosted GitLab URLs, while `Test-KeepAChangelogFile` continues to accept GitLab `/-/compare/` links.
+- Added provider-aware footer-link support so `Initialize-KeepAChangelogFile` and `Move-UnreleasedChangelog` can generate GitHub, GitLab, and Azure DevOps footer links with explicit provider hints when needed.
+  - Use `-RepositoryProvider GitLab` for self-hosted GitLab repository URLs.
+  - Use `-RepositoryProvider AzureDevOps` together with `-RepositoryTargetReference`, and `-ReleaseReference` on release moves when the Azure release ref differs from the visible version.
+  - `Test-KeepAChangelogFile` now accepts Azure DevOps `branchCompare` footer links in addition to GitHub and GitLab compare links.
 
 ### Changed
 

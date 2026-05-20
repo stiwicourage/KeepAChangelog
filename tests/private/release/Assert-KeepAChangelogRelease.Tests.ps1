@@ -19,6 +19,7 @@ Describe 'Assert-KeepAChangelogRelease' {
         $result.Version | Should -Be '1.0.0'
         $result.Date | Should -Be '2026-05-03'
         $result.Tag | Should -Be '1.0.0'
+        $result.Reference | Should -Be '1.0.0'
     }
 
     It 'validates required release fields' {

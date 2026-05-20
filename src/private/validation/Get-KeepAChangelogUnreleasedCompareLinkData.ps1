@@ -11,6 +11,7 @@ function Get-KeepAChangelogUnreleasedCompareLinkData {
 
     $result = [pscustomobject]@{
         UnreleasedCompareLinkPrefix = $null
+        UnreleasedTargetReference   = $null
         PreviousReleaseReference    = $null
     }
 
@@ -18,8 +19,17 @@ function Get-KeepAChangelogUnreleasedCompareLinkData {
         return $result
     }
 
-    $pattern = '(?m)^\[Unreleased\]:\s*(?<prefix>\S+/compare/)(?<from>.+?)\.\.\.HEAD\s*$'
-    $matchList = [regex]::Matches($Footer, $pattern)
+    $patternList = @(
+        '(?m)^\[Unreleased\]:\s*(?<prefix>\S+/(?:compare|-/compare)/)(?<from>.+?)\.\.\.(?<target>HEAD)\s*$',
+        '(?m)^\[Unreleased\]:\s*(?<prefix>\S+/branchCompare\?baseVersion=)(?<from>.+?)(?:&|&amp;)targetVersion=(?<target>.+?)(?:&|&amp;)_a=commits\s*$'
+    )
+    $matchList = [System.Collections.Generic.List[System.Text.RegularExpressions.Match]]::new()
+
+    foreach ($pattern in $patternList) {
+        foreach ($match in [regex]::Matches($Footer, $pattern)) {
+            $matchList.Add($match)
+        }
+    }
 
     if ($matchList.Count -eq 0) {
         $ErrorList.Add('Could not find an [Unreleased] compare link in CHANGELOG.md.')
@@ -33,6 +43,7 @@ function Get-KeepAChangelogUnreleasedCompareLinkData {
     $match = $matchList[0]
     return [pscustomobject]@{
         UnreleasedCompareLinkPrefix = $match.Groups['prefix'].Value
+        UnreleasedTargetReference   = $match.Groups['target'].Value
         PreviousReleaseReference    = $match.Groups['from'].Value
     }
 }

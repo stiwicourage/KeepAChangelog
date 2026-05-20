@@ -113,7 +113,9 @@ Describe 'Move-UnreleasedChangelog' {
             Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
 
         $command.Parameters.ContainsKey('RepositoryProvider') | Should -BeTrue
-        $validateSet.ValidValues | Should -Be @('GitHub', 'GitLab')
+        $command.Parameters.ContainsKey('RepositoryTargetReference') | Should -BeTrue
+        $command.Parameters.ContainsKey('ReleaseReference') | Should -BeTrue
+        $validateSet.ValidValues | Should -Be @('GitHub', 'GitLab', 'AzureDevOps')
     }
 
     It 'moves unreleased notes into a release section, clears Unreleased, and updates compare links' {
@@ -317,6 +319,8 @@ $footer
             FileName                 = 'CHANGELOG.md'
             RepositoryUrl            = 'https://github.com/example/repo'
             RepositoryProvider       = ''
+            RepositoryTargetReference = ''
+            ReleaseReference          = ''
             ExpectedReleaseLink      = 'https://github.com/example/repo/releases/tag/1.0.0'
             ExpectedUnreleasedFooter = '\[Unreleased\]: https://github\.com/example/repo/compare/1\.0\.0\.\.\.HEAD'
             ExpectedReleaseFooter    = '\[1\.0\.0\]: https://github\.com/example/repo/releases/tag/1\.0\.0'
@@ -326,9 +330,22 @@ $footer
             FileName                 = 'CHANGELOG-gitlab-first-release.md'
             RepositoryUrl            = 'https://code.example.com/group/project'
             RepositoryProvider       = 'GitLab'
+            RepositoryTargetReference = ''
+            ReleaseReference          = ''
             ExpectedReleaseLink      = 'https://code.example.com/group/project/-/tags/1.0.0'
             ExpectedUnreleasedFooter = '\[Unreleased\]: https://code\.example\.com/group/project/-/compare/1\.0\.0\.\.\.HEAD'
             ExpectedReleaseFooter    = '\[1\.0\.0\]: https://code\.example\.com/group/project/-/tags/1\.0\.0'
+        }
+        @{
+            Name                      = 'Azure DevOps repository URLs with explicit target and release refs'
+            FileName                  = 'CHANGELOG-azure-first-release.md'
+            RepositoryUrl             = 'https://ado.example.com/Org/Project/_git/Tools'
+            RepositoryProvider        = 'AzureDevOps'
+            RepositoryTargetReference = 'GBdevelop'
+            ReleaseReference          = 'GTv1.0.0'
+            ExpectedReleaseLink       = 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv1.0.0&targetVersion=GTv1.0.0&_a=commits'
+            ExpectedUnreleasedFooter  = '\[Unreleased\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv1\.0\.0&targetVersion=GBdevelop&_a=commits'
+            ExpectedReleaseFooter     = '\[1\.0\.0\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv1\.0\.0&targetVersion=GTv1\.0\.0&_a=commits'
         }
     ) {
         $path = Join-Path $TestDrive $FileName
@@ -354,6 +371,14 @@ $footer
             $parameters.RepositoryProvider = $RepositoryProvider
         }
 
+        if (-not [string]::IsNullOrWhiteSpace($RepositoryTargetReference)) {
+            $parameters.RepositoryTargetReference = $RepositoryTargetReference
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($ReleaseReference)) {
+            $parameters.ReleaseReference = $ReleaseReference
+        }
+
         $result = Move-UnreleasedChangelog @parameters
         $updated = Get-Content -LiteralPath $path -Raw
 
@@ -362,6 +387,42 @@ $footer
         $result.NewReleaseLink | Should -Be $ExpectedReleaseLink
         $updated | Should -Match $ExpectedUnreleasedFooter
         $updated | Should -Match $ExpectedReleaseFooter
+    }
+
+    It 'updates Azure DevOps compare links when the release reference is supplied explicitly' {
+        $path = Join-Path $TestDrive 'CHANGELOG-azure-existing-footer.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Azure DevOps follow-up notes.
+
+## [13.0.3] - 2026-05-01
+
+### Added
+
+- Previous release notes.
+
+[Unreleased]: https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.3&targetVersion=GBdevelop&_a=commits
+[13.0.3]: https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.2&targetVersion=GTv13.0.3&_a=commits
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Move-UnreleasedChangelog `
+            -Path $path `
+            -Version '13.0.4' `
+            -Date '2026-05-02' `
+            -ReleaseReference 'GTv13.0.4'
+        $updated = Get-Content -LiteralPath $path -Raw
+
+        $result.PreviousReleaseReference | Should -Be 'GTv13.0.3'
+        $result.NewReleaseCompareLink | Should -Be 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.3&targetVersion=GTv13.0.4&_a=commits'
+        $result.NewReleaseLink | Should -Be 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.3&targetVersion=GTv13.0.4&_a=commits'
+        $updated | Should -Match '\[Unreleased\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv13\.0\.4&targetVersion=GBdevelop&_a=commits'
+        $updated | Should -Match '\[13\.0\.4\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv13\.0\.3&targetVersion=GTv13\.0\.4&_a=commits'
     }
 
     It 'keeps footer links omitted for <Name>' -ForEach @(

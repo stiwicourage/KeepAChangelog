@@ -15,16 +15,23 @@ function Initialize-KeepAChangelogFile {
     )
 
     dynamicparam {
-        return Get-KeepAChangelogRepositoryProviderParameterDictionary
+        return Get-KeepAChangelogRepositoryProviderParameterDictionary -IncludeRepositoryTargetReference
     }
 
     begin {
         Assert-KeepAChangelogInitialization -Path $Path -RepositoryUrl $RepositoryUrl -Force $Force.IsPresent
         $normalizedRepositoryUrl = $RepositoryUrl.TrimEnd('/')
         $repositoryProvider = $PSBoundParameters['RepositoryProvider']
+        $repositoryTargetReference = $PSBoundParameters['RepositoryTargetReference']
+        $repositoryState = [pscustomobject]@{
+            RepositoryUrl             = $normalizedRepositoryUrl
+            RepositoryProvider        = $repositoryProvider
+            RepositoryTargetReference = $repositoryTargetReference
+            UnreleasedCompareLinkPrefix = ''
+            UnreleasedTargetReference = ''
+        }
         $template = Get-KeepAChangelogTemplateText `
-            -RepositoryUrl $normalizedRepositoryUrl `
-            -RepositoryProvider $repositoryProvider `
+            -RepositoryState $repositoryState `
             -PreviousReleaseReference $PreviousReleaseReference `
             -SectionHeading $SectionHeading
 
