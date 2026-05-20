@@ -172,6 +172,46 @@ Describe 'Test-KeepAChangelogFile' {
         $result.Errors | Should -Contain 'Could not find ## [Unreleased] section in CHANGELOG.md.'
     }
 
+    It 'reports a near-match Unreleased heading with an actionable error' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+## Unreleased
+
+### Added
+
+- Draft entry.
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Test-KeepAChangelogFile -Path $path
+
+        $result.IsValid | Should -BeFalse
+        $result.Errors | Should -Contain 'Found an Unreleased heading, but it is formatted as `## Unreleased`. Expected `## [Unreleased]`.'
+    }
+
+    It 'keeps the missing-section error for headings that only mention Unreleased' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+### Unreleased migration notes
+
+## [1.0.0] - 2026-04-30
+
+### Added
+
+- Initial release.
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Test-KeepAChangelogFile -Path $path
+
+        $result.IsValid | Should -BeFalse
+        $result.Errors | Should -Contain 'Could not find ## [Unreleased] section in CHANGELOG.md.'
+    }
+
     It 'accepts release sections without footer links' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 

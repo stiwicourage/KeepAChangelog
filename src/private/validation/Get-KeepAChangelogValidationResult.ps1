@@ -7,8 +7,9 @@ function Get-KeepAChangelogValidationResult {
 
     $errorList = [System.Collections.Generic.List[string]]::new()
     $parts = Split-KeepAChangelogText -Text $Text
-    if (-not (Test-KeepAChangelogHasUnreleasedSection -Body $parts.Body)) {
-        $errorList.Add('Could not find ## [Unreleased] section in CHANGELOG.md.')
+    $unreleasedSectionError = Get-KeepAChangelogUnreleasedSectionError -Body $parts.Body
+    if ($null -ne $unreleasedSectionError) {
+        $errorList.Add($unreleasedSectionError)
     }
 
     $releaseVersionList = Get-KeepAChangelogReleaseVersionList `

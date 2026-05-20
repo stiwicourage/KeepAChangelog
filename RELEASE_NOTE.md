@@ -15,6 +15,8 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 
 ### Fixed
 
+- Improved `Test-KeepAChangelogFile` diagnostics so obvious but invalid `Unreleased` heading variants now report the found heading and the expected `## [Unreleased]` format.
+
 ### Security
 
 ## [0.2.5] - 2026-05-15

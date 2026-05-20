@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Improved `Test-KeepAChangelogFile` diagnostics so obvious but invalid `Unreleased` heading variants now report the found heading and the expected `## [Unreleased]` format instead of only reporting the section as missing.
+
 ### Security
 
 ## [0.2.5] - 2026-05-15
