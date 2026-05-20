@@ -3,6 +3,7 @@ function Get-KeepAChangelogFooterLine {
     param(
         [Parameter(Mandatory)]
         [string]$RepositoryUrl,
+        [string]$RepositoryProvider,
         [string]$PreviousReleaseReference
     )
 
@@ -10,5 +11,8 @@ function Get-KeepAChangelogFooterLine {
         return $null
     }
 
-    return "[Unreleased]: $RepositoryUrl/compare/$PreviousReleaseReference...HEAD"
+    $repositoryLinkData = Get-KeepAChangelogRepositoryLinkData `
+        -RepositoryUrl $RepositoryUrl `
+        -RepositoryProvider $RepositoryProvider
+    return "[Unreleased]: $($repositoryLinkData.UnreleasedCompareLinkPrefix)$PreviousReleaseReference...HEAD"
 }

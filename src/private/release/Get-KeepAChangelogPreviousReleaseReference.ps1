@@ -5,12 +5,12 @@ function Get-ChangelogReleaseTargetReference {
         [string]$Link
     )
 
-    $compareMatch = [regex]::Match($Link, '/compare/.+\.\.\.(?<target>.+)$')
+    $compareMatch = [regex]::Match($Link, '/(?:compare|-/compare)/.+\.\.\.(?<target>.+)$')
     if ($compareMatch.Success) {
         return $compareMatch.Groups['target'].Value
     }
 
-    $tagMatch = [regex]::Match($Link, '/releases/tag/(?<target>.+)$')
+    $tagMatch = [regex]::Match($Link, '/(?:releases/tag|-/tags)/(?<target>.+)$')
     if ($tagMatch.Success) {
         return $tagMatch.Groups['target'].Value
     }

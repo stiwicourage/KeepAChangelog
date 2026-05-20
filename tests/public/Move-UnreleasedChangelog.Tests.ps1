@@ -3,13 +3,19 @@ function script:Initialize-TestChangelog {
     param(
         [Parameter(Mandatory)]
         [string]$Path,
-        [string]$PreviousReleaseReference
+        [string]$PreviousReleaseReference,
+        [string]$RepositoryUrl = 'https://github.com/example/repo',
+        [string]$RepositoryProvider
     )
 
     $parameters = @{
         Path          = $Path
-        RepositoryUrl = 'https://github.com/example/repo'
+        RepositoryUrl = $RepositoryUrl
         Force         = $true
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($RepositoryProvider)) {
+        $parameters.RepositoryProvider = $RepositoryProvider
     }
 
     if (-not [string]::IsNullOrWhiteSpace($PreviousReleaseReference)) {
@@ -101,6 +107,15 @@ BeforeAll {
 }
 
 Describe 'Move-UnreleasedChangelog' {
+    It 'exposes RepositoryProvider with the supported provider values' {
+        $command = Get-Command -Name Move-UnreleasedChangelog
+        $validateSet = $command.Parameters['RepositoryProvider'].Attributes |
+            Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
+
+        $command.Parameters.ContainsKey('RepositoryProvider') | Should -BeTrue
+        $validateSet.ValidValues | Should -Be @('GitHub', 'GitLab')
+    }
+
     It 'moves unreleased notes into a release section, clears Unreleased, and updates compare links' {
         $caseList = @(
             @{
@@ -218,10 +233,11 @@ $footer
         ([regex]::Matches($updated, '(?m)^\[1\.6\.0\]:').Count) | Should -Be 1
     }
 
-    It 'reuses the last remaining release reference when the same version is released again' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        @'
+    It 'updates compare links from the last remaining release reference for <Name>' -ForEach @(
+        @{
+            Name                   = 're-releasing the same GitHub version'
+            FileName               = 'CHANGELOG-github-rerelease.md'
+            Text                   = @'
 # Changelog
 
 ## [Unreleased]
@@ -238,20 +254,84 @@ $footer
 
 [Unreleased]: https://github.com/example/repo/compare/0.1.0...HEAD
 [0.0.1]: https://github.com/example/repo/compare/develop...0.0.1
-'@ | Set-Content -LiteralPath $path -Encoding utf8
+'@
+            Version                = '0.1.0'
+            Date                   = '2026-05-04'
+            ExpectedPrevious       = '0.0.1'
+            ExpectedReleaseLink    = 'https://github.com/example/repo/compare/0.0.1...0.1.0'
+            ExpectedUnreleasedLink = '\[Unreleased\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.HEAD'
+            ExpectedVersionLink    = '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.0\.1\.\.\.0\.1\.0'
+            ForbiddenVersionLink   = '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.0\.1\.0'
+        }
+        @{
+            Name                   = 'updating a GitLab footer'
+            FileName               = 'CHANGELOG-gitlab-footer.md'
+            Text                   = @'
+# Changelog
 
-        $result = Move-UnreleasedChangelog -Path $path -Version '0.1.0' -Date '2026-05-04'
+## [Unreleased]
+
+### Fixed
+
+- Fixed CLI parsing.
+
+## [1.5.0] - 2026-04-10
+
+### Added
+
+- Previous release notes.
+
+[Unreleased]: https://gitlab.com/example/repo/-/compare/1.5.0...HEAD
+[1.5.0]: https://gitlab.com/example/repo/-/compare/1.4.0...1.5.0
+'@
+            Version                = '1.6.0'
+            Date                   = '2026-04-30'
+            ExpectedPrevious       = '1.5.0'
+            ExpectedReleaseLink    = 'https://gitlab.com/example/repo/-/compare/1.5.0...1.6.0'
+            ExpectedUnreleasedLink = '\[Unreleased\]: https://gitlab\.com/example/repo/-/compare/1\.6\.0\.\.\.HEAD'
+            ExpectedVersionLink    = '\[1\.6\.0\]: https://gitlab\.com/example/repo/-/compare/1\.5\.0\.\.\.1\.6\.0'
+            ForbiddenVersionLink   = $null
+        }
+    ) {
+        $path = Join-Path $TestDrive $FileName
+
+        $Text | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Move-UnreleasedChangelog -Path $path -Version $Version -Date $Date
         $updated = Get-Content -LiteralPath $path -Raw
 
-        $result.PreviousReleaseReference | Should -Be '0.0.1'
-        $result.NewReleaseCompareLink | Should -Be 'https://github.com/example/repo/compare/0.0.1...0.1.0'
-        $updated | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.HEAD'
-        $updated | Should -Match '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.0\.1\.\.\.0\.1\.0'
-        $updated | Should -Not -Match '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.0\.1\.0'
+        $result.PreviousReleaseReference | Should -Be $ExpectedPrevious
+        $result.NewReleaseCompareLink | Should -Be $ExpectedReleaseLink
+        $result.NewReleaseLink | Should -Be $ExpectedReleaseLink
+        $updated | Should -Match $ExpectedUnreleasedLink
+        $updated | Should -Match $ExpectedVersionLink
+
+        if (-not [string]::IsNullOrWhiteSpace($ForbiddenVersionLink)) {
+            $updated | Should -Not -Match $ForbiddenVersionLink
+        }
     }
 
-    It 'adds footer links on the first release when RepositoryUrl is provided' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
+    It 'adds footer links on the first release for <Name>' -ForEach @(
+        @{
+            Name                     = 'GitHub repository URLs'
+            FileName                 = 'CHANGELOG.md'
+            RepositoryUrl            = 'https://github.com/example/repo'
+            RepositoryProvider       = ''
+            ExpectedReleaseLink      = 'https://github.com/example/repo/releases/tag/1.0.0'
+            ExpectedUnreleasedFooter = '\[Unreleased\]: https://github\.com/example/repo/compare/1\.0\.0\.\.\.HEAD'
+            ExpectedReleaseFooter    = '\[1\.0\.0\]: https://github\.com/example/repo/releases/tag/1\.0\.0'
+        }
+        @{
+            Name                     = 'self-hosted GitLab repository URLs with an explicit provider'
+            FileName                 = 'CHANGELOG-gitlab-first-release.md'
+            RepositoryUrl            = 'https://code.example.com/group/project'
+            RepositoryProvider       = 'GitLab'
+            ExpectedReleaseLink      = 'https://code.example.com/group/project/-/tags/1.0.0'
+            ExpectedUnreleasedFooter = '\[Unreleased\]: https://code\.example\.com/group/project/-/compare/1\.0\.0\.\.\.HEAD'
+            ExpectedReleaseFooter    = '\[1\.0\.0\]: https://code\.example\.com/group/project/-/tags/1\.0\.0'
+        }
+    ) {
+        $path = Join-Path $TestDrive $FileName
 
         @'
 # Changelog
@@ -263,18 +343,25 @@ $footer
 - Initial release notes.
 '@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        $result = Move-UnreleasedChangelog `
-            -Path $path `
-            -Version '1.0.0' `
-            -Date '2026-05-01' `
-            -RepositoryUrl 'https://github.com/example/repo'
+        $parameters = @{
+            Path          = $path
+            Version       = '1.0.0'
+            Date          = '2026-05-01'
+            RepositoryUrl = $RepositoryUrl
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($RepositoryProvider)) {
+            $parameters.RepositoryProvider = $RepositoryProvider
+        }
+
+        $result = Move-UnreleasedChangelog @parameters
         $updated = Get-Content -LiteralPath $path -Raw
 
         $result.PreviousReleaseReference | Should -BeNullOrEmpty
-        $result.NewReleaseCompareLink | Should -Be 'https://github.com/example/repo/releases/tag/1.0.0'
-        $result.NewReleaseLink | Should -Be 'https://github.com/example/repo/releases/tag/1.0.0'
-        $updated | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/1\.0\.0\.\.\.HEAD'
-        $updated | Should -Match '\[1\.0\.0\]: https://github\.com/example/repo/releases/tag/1\.0\.0'
+        $result.NewReleaseCompareLink | Should -Be $ExpectedReleaseLink
+        $result.NewReleaseLink | Should -Be $ExpectedReleaseLink
+        $updated | Should -Match $ExpectedUnreleasedFooter
+        $updated | Should -Match $ExpectedReleaseFooter
     }
 
     It 'keeps footer links omitted for <Name>' -ForEach @(

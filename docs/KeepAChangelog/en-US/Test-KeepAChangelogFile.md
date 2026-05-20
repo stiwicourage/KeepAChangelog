@@ -29,6 +29,7 @@ PS> Test-KeepAChangelogFile [-Path <string>] [-ThrowOnError] [<CommonParameters>
 
 - the presence of `## [Unreleased]`
 - the `[Unreleased]` compare link when a reference-link footer is present, even if blank lines separate the footer links
+- GitHub `/compare/` and GitLab `/-/compare/` footer-link formats
 - versioned release headings in `## [<version>] - <date>` format
 - duplicate reference-link labels
 

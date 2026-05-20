@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Added repository-scoped Agentic Copilot workflow scaffolding for maintainers, including specialized agents, reusable prompts, instruction files, skills, a streamlined pull request template, updated contribution guidance, and an internal `RELEASE_NOTE.md` placeholder for future interface-facing release summaries.
+- Added native GitLab footer-link support so changelog initialization, validation, and release updates can generate and preserve GitLab `/-/compare/` and `/-/tags/` URLs, including self-hosted GitLab repositories when `-RepositoryProvider GitLab` is supplied.
 
 ### Changed
 

@@ -26,26 +26,11 @@ function Get-ChangelogReferenceLinkData {
     }
 }
 
-function Get-NormalizedChangelogRepositoryUrl {
-    [CmdletBinding()]
-    param(
-        [string]$RepositoryUrl,
-        [Parameter(Mandatory)]
-        [string]$UnreleasedCompareLinkPrefix
-    )
-
-    if ([string]::IsNullOrWhiteSpace($RepositoryUrl)) {
-        return ($UnreleasedCompareLinkPrefix -replace '/compare/$', '')
-    }
-
-    return $RepositoryUrl.TrimEnd('/')
-}
-
 function Get-ChangelogReleaseLink {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$RepositoryUrl,
+        [string]$ReleaseTagPrefix,
         [Parameter(Mandatory)]
         [string]$UnreleasedCompareLinkPrefix,
         [AllowEmptyString()]
@@ -55,7 +40,7 @@ function Get-ChangelogReleaseLink {
     )
 
     if ([string]::IsNullOrWhiteSpace($PreviousReleaseReference)) {
-        return "$RepositoryUrl/releases/tag/$ReleaseTag"
+        return "$ReleaseTagPrefix$ReleaseTag"
     }
 
     return "$UnreleasedCompareLinkPrefix$PreviousReleaseReference...$ReleaseTag"
@@ -115,12 +100,9 @@ function Get-UpdatedChangelogReferenceFooter {
         $orderedLabelList.Add('Unreleased')
     }
 
-    $normalizedRepositoryUrl = Get-NormalizedChangelogRepositoryUrl `
-        -RepositoryUrl $Context.RepositoryUrl `
-        -UnreleasedCompareLinkPrefix $Context.UnreleasedCompareLinkPrefix
     $updatedUnreleasedLink = "$($Context.UnreleasedCompareLinkPrefix)$($Release.Tag)...HEAD"
     $newReleaseLink = Get-ChangelogReleaseLink `
-        -RepositoryUrl $normalizedRepositoryUrl `
+        -ReleaseTagPrefix $Context.ReleaseTagPrefix `
         -UnreleasedCompareLinkPrefix $Context.UnreleasedCompareLinkPrefix `
         -PreviousReleaseReference $Context.PreviousReleaseReference `
         -ReleaseTag $Release.Tag

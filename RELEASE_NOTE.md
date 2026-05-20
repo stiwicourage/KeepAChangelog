@@ -7,6 +7,8 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 
 ### Added
 
+- Added native GitLab footer-link support so `Initialize-KeepAChangelogFile` and `Move-UnreleasedChangelog` can use `-RepositoryProvider GitLab` for self-hosted GitLab URLs, while `Test-KeepAChangelogFile` continues to accept GitLab `/-/compare/` links.
+
 ### Changed
 
 ### Deprecated
