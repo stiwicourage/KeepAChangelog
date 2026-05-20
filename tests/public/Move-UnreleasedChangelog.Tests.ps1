@@ -61,258 +61,32 @@ function script:Get-ReferenceFooterText {
 }
 
 BeforeAll {
-    & (Join-Path $PSScriptRoot '..' 'scripts' 'build' 'ci' 'Import-BuiltCiModule.ps1') | Out-Null
-}
+    . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Get-KeepAChangelogProjectRoot.ps1')
+    . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Import-KeepAChangelogSourceFile.ps1')
 
-Describe 'Initialize-KeepAChangelogFile' {
-    It 'creates a changelog template with standard headings and an Unreleased compare link when PreviousReleaseReference is provided' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        $result = Initialize-KeepAChangelogFile `
-            -Path $path `
-            -RepositoryUrl 'https://github.com/example/repo' `
-            -PreviousReleaseReference '1.0.0'
-        $text = Get-Content -LiteralPath $path -Raw
-
-        $result.Path | Should -Be $path
-        $text | Should -Match '## \[Unreleased\]'
-        $text | Should -Match '### Added'
-        $text | Should -Match '### Security'
-        $text | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/1\.0\.0\.\.\.HEAD'
-    }
-
-    It 'creates a changelog template without footer links when PreviousReleaseReference is omitted' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        $result = Initialize-KeepAChangelogFile `
-            -Path $path `
-            -RepositoryUrl 'https://github.com/example/repo' `
-            -Force
-        $text = Get-Content -LiteralPath $path -Raw
-
-        $result.PreviousReleaseReference | Should -BeNullOrEmpty
-        $text | Should -Match '## \[Unreleased\]'
-        $text | Should -Not -Match '(?m)^\[Unreleased\]:'
-    }
-
-    It 'accepts develop as PreviousReleaseReference for projects without tags yet' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        $result = Initialize-KeepAChangelogFile `
-            -Path $path `
-            -RepositoryUrl 'https://github.com/example/repo' `
-            -PreviousReleaseReference 'develop' `
-            -Force
-        $text = Get-Content -LiteralPath $path -Raw
-
-        $result.PreviousReleaseReference | Should -Be 'develop'
-        $text | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/develop\.\.\.HEAD'
-    }
-
-    It 'does not export the old New-KeepAChangelogFile command name' {
-        { Get-Command -Name New-KeepAChangelogFile -ErrorAction Stop } | Should -Throw
-    }
-}
-
-Describe 'Get-KeepAChangelogVersion' {
-    It 'returns the loaded KeepAChangelog module version' {
-        $result = Get-KeepAChangelogVersion
-
-        $result | Should -Be ((Get-Module KeepAChangelog).Version.ToString())
-    }
-}
-
-Describe 'Test-KeepAChangelogFile' {
-    It 'returns a valid result for initialized changelog variants' {
-        $caseList = @(
-            @{
-                PreviousReleaseReference = '1.0.0'
-                ExpectedReference        = '1.0.0'
-            }
-            @{
-                PreviousReleaseReference = $null
-                ExpectedReference        = $null
-            }
-        )
-
-        foreach ($case in $caseList) {
-            $path = Join-Path $TestDrive "CHANGELOG-$($case.ExpectedReference ?? 'new').md"
-            Initialize-TestChangelog -Path $path -PreviousReleaseReference $case.PreviousReleaseReference
-            $result = Test-KeepAChangelogFile -Path $path
-
-            $result.IsValid | Should -BeTrue
-            if ($null -eq $case.ExpectedReference) {
-                $result.PreviousReleaseReference | Should -BeNullOrEmpty
-                continue
-            }
-
-            $result.PreviousReleaseReference | Should -Be $case.ExpectedReference
-        }
-    }
-
-    It 'reports a missing Unreleased section as invalid' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        @'
-# Changelog
-
-## [1.0.0] - 2026-04-30
-
-### Added
-
-- Initial release.
-
-[Unreleased]: https://github.com/example/repo/compare/1.0.0...HEAD
-[1.0.0]: https://github.com/example/repo/releases/tag/1.0.0
-'@ | Set-Content -LiteralPath $path -Encoding utf8
-
-        $result = Test-KeepAChangelogFile -Path $path
-
-        $result.IsValid | Should -BeFalse
-        $result.Errors | Should -Contain 'Could not find ## [Unreleased] section in CHANGELOG.md.'
-    }
-
-    It 'reports a near-match Unreleased heading with an actionable error' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        @'
-# Changelog
-
-## Unreleased
-
-### Added
-
-- Draft entry.
-'@ | Set-Content -LiteralPath $path -Encoding utf8
-
-        $result = Test-KeepAChangelogFile -Path $path
-
-        $result.IsValid | Should -BeFalse
-        $result.Errors | Should -Contain 'Found an Unreleased heading, but it is formatted as `## Unreleased`. Expected `## [Unreleased]`.'
-    }
-
-    It 'keeps the missing-section error for headings that only mention Unreleased' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        @'
-# Changelog
-
-### Unreleased migration notes
-
-## [1.0.0] - 2026-04-30
-
-### Added
-
-- Initial release.
-'@ | Set-Content -LiteralPath $path -Encoding utf8
-
-        $result = Test-KeepAChangelogFile -Path $path
-
-        $result.IsValid | Should -BeFalse
-        $result.Errors | Should -Contain 'Could not find ## [Unreleased] section in CHANGELOG.md.'
-    }
-
-    It 'accepts release sections without footer links' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-
-        @'
-# Changelog
-
-## [Unreleased]
-
-### Added
-
-## [1.0.0] - 2026-04-30
-
-### Added
-
-- Initial release.
-'@ | Set-Content -LiteralPath $path -Encoding utf8
-
-        $result = Test-KeepAChangelogFile -Path $path
-
-        $result.IsValid | Should -BeTrue
-        @($result.Errors).Count | Should -Be 0
-        $result.UnreleasedCompareLinkPrefix | Should -BeNullOrEmpty
-        $result.PreviousReleaseReference | Should -BeNullOrEmpty
-        @($result.ReleaseVersions) | Should -Be @('1.0.0')
-    }
-
-    It 'accepts yanked release headings that follow the Keep a Changelog format' {
-        $caseList = @(
-            @{
-                Name                     = 'compact-footer'
-                SeparateWithBlankLines   = $false
-            }
-            @{
-                Name                     = 'spaced-footer'
-                SeparateWithBlankLines   = $true
-            }
-        )
-
-        foreach ($case in $caseList) {
-            $path = Join-Path $TestDrive "CHANGELOG-YANKED-$($case.Name).md"
-            $footer = Get-ReferenceFooterText `
-                -LineList @(
-                    '[Unreleased]: https://github.com/example/repo/compare/2.2.0...HEAD'
-                    '[2.2.0]: https://github.com/example/repo/releases/tag/2.2.0'
-                ) `
-                -SeparateWithBlankLines:$case.SeparateWithBlankLines
-
-            @"
-# Changelog
-
-## [Unreleased]
-
-### Added
-
-## [2.2.0] - 2026-05-06 [YANKED]
-
-### Fixed
-
-- Yanked because of a release regression.
-
-$footer
-"@ | Set-Content -LiteralPath $path -Encoding utf8
-
-            $result = Test-KeepAChangelogFile -Path $path
-
-            $result.IsValid | Should -BeTrue
-            $result.Errors.Count | Should -Be 0
-            @($result.ReleaseVersions) | Should -Be @('2.2.0')
-            $result.PreviousReleaseReference | Should -Be '2.2.0'
-        }
-    }
-
-    It 'throws the validation errors when ThrowOnError is used' {
-        $path = Join-Path $TestDrive 'CHANGELOG.md'
-        $errorMessage = $null
-
-        @'
-# Changelog
-'@ | Set-Content -LiteralPath $path -Encoding utf8
-
-        try {
-            Test-KeepAChangelogFile -Path $path -ThrowOnError
-        }
-        catch {
-            $errorMessage = $_.Exception.Message
-        }
-
-        $errorMessage | Should -Be 'Could not find ## [Unreleased] section in CHANGELOG.md.'
-    }
+    $projectRoot = Get-KeepAChangelogProjectRoot -StartPath $PSScriptRoot
+    Import-KeepAChangelogSourceFile -ProjectRoot $projectRoot -RelativePath @(
+        'src/private/initialize/*.ps1'
+        'src/private/shared/*.ps1'
+        'src/private/validation/*.ps1'
+        'src/private/release/*.ps1'
+        'src/public/Initialize-KeepAChangelogFile.ps1'
+        'src/public/Convert-ChangelogReleaseNotesToTagMessage.ps1'
+        'src/public/Get-KeepAChangelogVersion.ps1'
+        'src/public/Move-UnreleasedChangelog.ps1'
+    ) | ForEach-Object { . $_.FullName }
 }
 
 Describe 'Move-UnreleasedChangelog' {
     It 'moves unreleased notes into a release section, clears Unreleased, and updates compare links' {
         $caseList = @(
             @{
-                Name                     = 'compact-footer'
-                SeparateWithBlankLines   = $false
+                Name                   = 'compact-footer'
+                SeparateWithBlankLines = $false
             }
             @{
-                Name                     = 'spaced-footer'
-                SeparateWithBlankLines   = $true
+                Name                   = 'spaced-footer'
+                SeparateWithBlankLines = $true
             }
         )
 
@@ -453,7 +227,7 @@ $footer
         $updated | Should -Not -Match '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.0\.1\.0'
     }
 
-    It 'adds footer links on the first release when the changelog started without a previous release reference' {
+    It 'adds footer links on the first release when RepositoryUrl is provided' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 
         @'
@@ -548,21 +322,21 @@ $footer
     It 'enforces release date ordering against the latest existing release' {
         $caseList = @(
             @{
-                Name             = 'earlier date'
-                ReleaseDate      = '2026-05-01'
-                ExpectedMessage  = "Release.Date '2026-05-01' cannot be earlier than latest existing release date '2026-05-02'."
-                ShouldThrow      = $true
+                Name            = 'earlier-date'
+                ReleaseDate     = '2026-05-01'
+                ExpectedMessage = "Release.Date '2026-05-01' cannot be earlier than latest existing release date '2026-05-02'."
+                ShouldThrow     = $true
             }
             @{
-                Name             = 'equal date'
-                ReleaseDate      = '2026-05-02'
-                ExpectedDate     = '2026-05-02'
-                ShouldThrow      = $false
+                Name         = 'equal-date'
+                ReleaseDate  = '2026-05-02'
+                ExpectedDate = '2026-05-02'
+                ShouldThrow  = $false
             }
         )
 
         foreach ($case in $caseList) {
-            $path = Join-Path $TestDrive "CHANGELOG-$($case.Name -replace ' ', '-').md"
+            $path = Join-Path $TestDrive "CHANGELOG-$($case.Name).md"
             Set-ReleaseReadyChangelog `
                 -Path $path `
                 -LatestRelease ([pscustomobject]@{
@@ -587,7 +361,6 @@ $footer
     It 'rejects the resolved current date when it is earlier than the latest existing release date' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
         $currentDate = Get-Date -Format 'yyyy-MM-dd'
-        $errorMessage = $null
 
         Set-ReleaseReadyChangelog `
             -Path $path `
@@ -598,14 +371,9 @@ $footer
                 Note            = '- Future release placeholder.'
             })
 
-        try {
+        {
             Move-UnreleasedChangelog -Path $path -Version '10.0.0'
-        }
-        catch {
-            $errorMessage = $_.Exception.Message
-        }
-
-        $errorMessage | Should -Be "Release.Date '$currentDate' cannot be earlier than latest existing release date '2999-01-01'."
+        } | Should -Throw "Release.Date '$currentDate' cannot be earlier than latest existing release date '2999-01-01'."
     }
 
     It 'rejects an explicit Date with the wrong format' {
@@ -621,56 +389,53 @@ $footer
             Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '05-02-2026'
         } | Should -Throw "Date must use yyyy-MM-dd format. Received: '05-02-2026'."
     }
-}
 
-Describe 'Convert-ChangelogReleaseNotesToTagMessage' {
-    It 'converts markdown release notes to plain text' {
-        $releaseNotes = @'
+    It 'throws when Version is blank' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+        Initialize-KeepAChangelogFile -Path $path -RepositoryUrl 'https://github.com/example/repo' -Force | Out-Null
+
+        {
+            Move-UnreleasedChangelog -Path $path -Version '   '
+        } | Should -Throw 'Version is required.'
+    }
+
+    It 'throws when the target file is missing' {
+        $path = Join-Path $TestDrive 'missing.md'
+
+        {
+            Move-UnreleasedChangelog -Path $path -Version '1.0.0'
+        } | Should -Throw "Could not find CHANGELOG file at '$path'."
+    }
+
+    It 'returns preview data without writing changes when WhatIf is used' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
 ### Fixed
 
 - Fixed CLI parsing.
-- Fixed release note formatting.
-'@
 
-        $result = Convert-ChangelogReleaseNotesToTagMessage -ReleaseNotes $releaseNotes
+## [1.5.0] - 2026-04-10
 
-        $result | Should -Be "Fixed`n`nFixed CLI parsing.`nFixed release note formatting."
-    }
-}
+### Added
 
-Describe 'Get-UnreleasedCompareLinkMatch' {
-    It 'extracts the compare prefix and previous release reference' {
-        InModuleScope KeepAChangelog {
-            $match = Get-UnreleasedCompareLinkMatch -Text @'
-# Changelog
-
-## [Unreleased]
+- Previous release notes.
 
 [Unreleased]: https://github.com/example/repo/compare/1.5.0...HEAD
-'@
+[1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0
+'@ | Set-Content -LiteralPath $path -Encoding utf8
 
-            $match.Success | Should -BeTrue
-            $match.Groups['prefix'].Value | Should -Be 'https://github.com/example/repo/compare/'
-            $match.Groups['from'].Value | Should -Be '1.5.0'
-        }
-    }
+        $before = Get-Content -LiteralPath $path -Raw
 
-    It 'throws when the Unreleased compare link is missing' {
-        InModuleScope KeepAChangelog {
-            $errorMessage = $null
+        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30' -WhatIf
+        $after = Get-Content -LiteralPath $path -Raw
 
-            try {
-                Get-UnreleasedCompareLinkMatch -Text @'
-# Changelog
-
-## [Unreleased]
-'@
-            }
-            catch {
-                $errorMessage = $_.Exception.Message
-            }
-
-            $errorMessage | Should -Be 'Could not find an [Unreleased] compare link in CHANGELOG.md.'
-        }
+        $result.Release.Version | Should -Be '1.6.0'
+        $result.KeepAChangelogVersion | Should -Be (Get-KeepAChangelogVersion)
+        $after | Should -Be $before
     }
 }
