@@ -9,7 +9,16 @@ BeforeAll {
 }
 
 Describe 'Get-UpdatedChangelogReferenceFooter' {
-    It 'derives the release link from the compare prefix when RepositoryUrl is omitted' {
+    It 'derives the release link from the compare prefix when RepositoryUrl is omitted' -ForEach @(
+        @{
+            Prefix         = 'https://github.com/example/repo/compare/'
+            ReleaseTagLink = 'https://github.com/example/repo/releases/tag/1.0.0'
+        }
+        @{
+            Prefix         = 'https://gitlab.com/example/repo/-/compare/'
+            ReleaseTagLink = 'https://gitlab.com/example/repo/-/tags/1.0.0'
+        }
+    ) {
         $result = Get-UpdatedChangelogReferenceFooter `
             -Footer '' `
             -Release ([pscustomobject]@{
@@ -18,11 +27,12 @@ Describe 'Get-UpdatedChangelogReferenceFooter' {
             }) `
             -Context ([pscustomobject]@{
                 RepositoryUrl               = $null
-                UnreleasedCompareLinkPrefix = 'https://github.com/example/repo/compare/'
+                ReleaseTagPrefix            = $ReleaseTagLink -replace '1.0.0$', ''
+                UnreleasedCompareLinkPrefix = $Prefix
                 PreviousReleaseReference    = ''
             })
 
-        $result.Footer | Should -Be "[Unreleased]: https://github.com/example/repo/compare/1.0.0...HEAD`n[1.0.0]: https://github.com/example/repo/releases/tag/1.0.0"
+        $result.Footer | Should -Be "[Unreleased]: $($Prefix)1.0.0...HEAD`n[1.0.0]: $ReleaseTagLink"
     }
 
     It 'returns an empty footer update when links should not be written' {

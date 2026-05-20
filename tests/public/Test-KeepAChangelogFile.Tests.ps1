@@ -38,6 +38,8 @@ BeforeAll {
     $projectRoot = Get-KeepAChangelogProjectRoot -StartPath $PSScriptRoot
     Import-KeepAChangelogSourceFile -ProjectRoot $projectRoot -RelativePath @(
         'src/private/initialize/*.ps1'
+        'src/private/shared/Get-KeepAChangelogRepositoryLinkData.ps1'
+        'src/private/shared/Get-KeepAChangelogRepositoryProviderParameterDictionary.ps1'
         'src/private/shared/Split-KeepAChangelogText.ps1'
         'src/private/validation/*.ps1'
         'src/public/Initialize-KeepAChangelogFile.ps1'
@@ -162,6 +164,34 @@ Describe 'Test-KeepAChangelogFile' {
         $result.UnreleasedCompareLinkPrefix | Should -BeNullOrEmpty
         $result.PreviousReleaseReference | Should -BeNullOrEmpty
         @($result.ReleaseVersions) | Should -Be @('1.0.0')
+    }
+
+    It 'accepts GitLab compare links in the reference footer' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+## [1.0.0] - 2026-04-30
+
+### Added
+
+- Initial release.
+
+[Unreleased]: https://gitlab.com/example/repo/-/compare/1.0.0...HEAD
+[1.0.0]: https://gitlab.com/example/repo/-/tags/1.0.0
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Test-KeepAChangelogFile -Path $path
+
+        $result.IsValid | Should -BeTrue
+        @($result.Errors).Count | Should -Be 0
+        $result.UnreleasedCompareLinkPrefix | Should -Be 'https://gitlab.com/example/repo/-/compare/'
+        $result.PreviousReleaseReference | Should -Be '1.0.0'
     }
 
     It 'accepts yanked release headings that follow the Keep a Changelog format' {

@@ -9,17 +9,24 @@ BeforeAll {
 }
 
 Describe 'Get-UnreleasedCompareLinkMatch' {
-    It 'extracts the compare prefix and previous release reference' {
-        $match = Get-UnreleasedCompareLinkMatch -Text @'
+    It 'extracts the compare prefix and previous release reference' -ForEach @(
+        @{
+            Prefix = 'https://github.com/example/repo/compare/'
+        }
+        @{
+            Prefix = 'https://gitlab.com/example/repo/-/compare/'
+        }
+    ) {
+        $match = Get-UnreleasedCompareLinkMatch -Text @"
 # Changelog
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/example/repo/compare/1.5.0...HEAD
-'@
+[Unreleased]: $Prefix`1.5.0...HEAD
+"@
 
         $match.Success | Should -BeTrue
-        $match.Groups['prefix'].Value | Should -Be 'https://github.com/example/repo/compare/'
+        $match.Groups['prefix'].Value | Should -Be $Prefix
         $match.Groups['from'].Value | Should -Be '1.5.0'
     }
 

@@ -20,7 +20,7 @@ Initializes a Keep a Changelog template.
 ### __AllParameterSets
 
 ```text
-PS> Initialize-KeepAChangelogFile [-Path <string>] -RepositoryUrl <string> [-PreviousReleaseReference <string>] [-SectionHeading <string[]>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+PS> Initialize-KeepAChangelogFile [-Path <string>] -RepositoryUrl <string> [-RepositoryProvider <string>] [-PreviousReleaseReference <string>] [-SectionHeading <string[]>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -47,10 +47,10 @@ Creates `CHANGELOG.md` with an `[Unreleased]` compare link that starts from `dev
 ### EXAMPLE 2
 
 ```text
-PS> Initialize-KeepAChangelogFile -Path ./CHANGELOG.md -RepositoryUrl https://github.com/couragedk/KeepAChangelog
+PS> Initialize-KeepAChangelogFile -Path ./CHANGELOG.md -RepositoryUrl https://code.example.com/group/project -RepositoryProvider GitLab -PreviousReleaseReference 1.5.2
 ```
 
-Creates a brand-new changelog without footer links so the first release can add them later.
+Creates a changelog for a self-hosted GitLab repository by using the explicit provider hint.
 
 ## PARAMETERS
 
@@ -61,6 +61,15 @@ Target changelog path. Defaults to `CHANGELOG.md`.
 ### -RepositoryUrl
 
 Repository base URL used to build compare links.
+
+GitHub repository URLs generate `/compare/` links. GitLab repository URLs like
+`https://gitlab.com/group/project` generate `/-/compare/` links.
+
+### -RepositoryProvider
+
+Optional provider hint used when `-RepositoryUrl` alone is not enough to infer the compare-link format.
+
+Use `GitLab` for self-hosted GitLab URLs that do not contain `gitlab` in the hostname.
 
 ### -PreviousReleaseReference
 

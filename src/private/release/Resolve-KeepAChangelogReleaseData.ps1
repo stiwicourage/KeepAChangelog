@@ -1,3 +1,19 @@
+function Get-KeepAChangelogRepositoryState {
+    [CmdletBinding()]
+    param(
+        [string]$RepositoryUrl,
+        [string]$RepositoryProvider,
+        [AllowEmptyString()]
+        [string]$Footer
+    )
+
+    return [pscustomobject]@{
+        Footer             = $Footer
+        RepositoryProvider = $RepositoryProvider
+        RepositoryUrl      = $RepositoryUrl
+    }
+}
+
 function Assert-KeepAChangelogValidation {
     [CmdletBinding()]
     param(
@@ -13,20 +29,19 @@ function Assert-KeepAChangelogValidation {
 function Get-KeepAChangelogRepositoryContext {
     [CmdletBinding()]
     param(
-        [string]$RepositoryUrl,
-        [AllowEmptyString()]
-        [string]$Footer,
+        [Parameter(Mandatory)]
+        [pscustomobject]$RepositoryState,
         [Parameter(Mandatory)]
         [pscustomobject]$Release,
         [Parameter(Mandatory)]
         [pscustomobject]$Validation
     )
 
-    $normalizedRepositoryUrl = if ([string]::IsNullOrWhiteSpace($RepositoryUrl)) {
+    $normalizedRepositoryUrl = if ([string]::IsNullOrWhiteSpace($RepositoryState.RepositoryUrl)) {
         $null
     }
     else {
-        $RepositoryUrl.TrimEnd('/')
+        $RepositoryState.RepositoryUrl.TrimEnd('/')
     }
 
     $unreleasedCompareLinkPrefix = $Validation.UnreleasedCompareLinkPrefix
@@ -37,27 +52,27 @@ function Get-KeepAChangelogRepositoryContext {
         return [pscustomobject]@{
             RepositoryUrl               = $null
             UnreleasedCompareLinkPrefix = $null
+            ReleaseTagPrefix            = $null
             PreviousReleaseReference    = $null
             ShouldWriteReferenceFooter  = $false
         }
     }
 
-    if ([string]::IsNullOrWhiteSpace($unreleasedCompareLinkPrefix)) {
-        $unreleasedCompareLinkPrefix = "$normalizedRepositoryUrl/compare/"
-    }
-
-    if ([string]::IsNullOrWhiteSpace($normalizedRepositoryUrl)) {
-        $normalizedRepositoryUrl = $unreleasedCompareLinkPrefix -replace '/compare/$', ''
-    }
+    $repositoryLinkData = Get-KeepAChangelogRepositoryLinkData `
+        -RepositoryUrl $normalizedRepositoryUrl `
+        -RepositoryProvider $RepositoryState.RepositoryProvider `
+        -UnreleasedCompareLinkPrefix $unreleasedCompareLinkPrefix
 
     $previousReleaseReference = Get-KeepAChangelogPreviousReleaseReference `
-        -Footer $Footer `
+        -Footer $RepositoryState.Footer `
         -Validation $Validation `
         -Release $Release
 
     return [pscustomobject]@{
-        RepositoryUrl               = $normalizedRepositoryUrl
-        UnreleasedCompareLinkPrefix = $unreleasedCompareLinkPrefix
+        RepositoryProvider          = $repositoryLinkData.RepositoryProvider
+        RepositoryUrl               = $repositoryLinkData.RepositoryUrl
+        UnreleasedCompareLinkPrefix = $repositoryLinkData.UnreleasedCompareLinkPrefix
+        ReleaseTagPrefix            = $repositoryLinkData.ReleaseTagPrefix
         PreviousReleaseReference    = $previousReleaseReference
         ShouldWriteReferenceFooter  = $true
     }
@@ -116,7 +131,8 @@ function Resolve-KeepAChangelogReleaseData {
         [Parameter(Mandatory)]
         [hashtable]$Release,
 
-        [string]$RepositoryUrl
+        [string]$RepositoryUrl,
+        [string]$RepositoryProvider
     )
 
     $normalizedRelease = Assert-KeepAChangelogRelease -Release $Release
@@ -125,9 +141,12 @@ function Resolve-KeepAChangelogReleaseData {
     $parts = Split-KeepAChangelogText -Text $Text
     Assert-KeepAChangelogReleaseDateOrder -Body $parts.Body -Release $normalizedRelease
     $unreleasedSectionMatch = Get-UnreleasedSectionMatch -Text $parts.Body
-    $repositoryContext = Get-KeepAChangelogRepositoryContext `
+    $repositoryState = Get-KeepAChangelogRepositoryState `
         -RepositoryUrl $RepositoryUrl `
-        -Footer $parts.Footer `
+        -RepositoryProvider $RepositoryProvider `
+        -Footer $parts.Footer
+    $repositoryContext = Get-KeepAChangelogRepositoryContext `
+        -RepositoryState $repositoryState `
         -Release $normalizedRelease `
         -Validation $validation
     $unreleasedBody = $unreleasedSectionMatch.Groups['body'].Value.Trim()

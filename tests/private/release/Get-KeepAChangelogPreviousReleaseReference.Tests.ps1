@@ -10,8 +10,11 @@ BeforeAll {
 }
 
 Describe 'Get-KeepAChangelogPreviousReleaseReference' {
-    It 'extracts the target from release tag links' {
-        $result = Get-ChangelogReleaseTargetReference -Link 'https://github.com/example/repo/releases/tag/1.0.0'
+    It 'extracts the target from release tag links' -ForEach @(
+        'https://github.com/example/repo/releases/tag/1.0.0'
+        'https://gitlab.com/example/repo/-/tags/1.0.0'
+    ) {
+        $result = Get-ChangelogReleaseTargetReference -Link $_
 
         $result | Should -Be '1.0.0'
     }

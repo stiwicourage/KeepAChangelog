@@ -20,7 +20,7 @@ Moves `Unreleased` notes into a versioned release section.
 ### __AllParameterSets
 
 ```text
-PS> Move-UnreleasedChangelog [-Path <string>] -Version <string> [-Date <string>] [-RepositoryUrl <string>] [-WhatIf] [-Confirm] [<CommonParameters>]
+PS> Move-UnreleasedChangelog [-Path <string>] -Version <string> [-Date <string>] [-RepositoryUrl <string>] [-RepositoryProvider <string>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -56,10 +56,10 @@ Promotes the current unreleased notes into release `1.6.0`.
 ### EXAMPLE 2
 
 ```text
-PS> Move-UnreleasedChangelog -Path ./CHANGELOG.md -Version 1.0.0 -RepositoryUrl https://github.com/couragedk/KeepAChangelog
+PS> Move-UnreleasedChangelog -Path ./CHANGELOG.md -Version 1.0.0 -RepositoryUrl https://code.example.com/group/project -RepositoryProvider GitLab
 ```
 
-Creates the first release and adds the initial footer links for a changelog that did not have a previous release reference.
+Creates the first release and adds GitLab footer links for a self-hosted GitLab repository.
 
 ## PARAMETERS
 
@@ -78,6 +78,14 @@ Optional release date in `yyyy-MM-dd` format.
 ### -RepositoryUrl
 
 Optional repository base URL used to create or maintain footer links when the changelog has no `[Unreleased]` compare link yet.
+
+GitHub repository URLs generate `/compare/` and `/releases/tag/` links. GitLab repository URLs generate `/-/compare/` and `/-/tags/` links.
+
+### -RepositoryProvider
+
+Optional provider hint used when `-RepositoryUrl` must generate new footer links and the host name does not identify the provider clearly.
+
+Use `GitLab` for self-hosted GitLab repository URLs.
 
 ### CommonParameters
 
