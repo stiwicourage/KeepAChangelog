@@ -1,0 +1,602 @@
+function script:Initialize-TestChangelog {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+        [string]$PreviousReleaseReference,
+        [string]$RepositoryUrl = 'https://github.com/example/repo',
+        [string]$RepositoryProvider
+    )
+
+    $parameters = @{
+        Path          = $Path
+        RepositoryUrl = $RepositoryUrl
+        Force         = $true
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($RepositoryProvider)) {
+        $parameters.RepositoryProvider = $RepositoryProvider
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($PreviousReleaseReference)) {
+        $parameters.PreviousReleaseReference = $PreviousReleaseReference
+    }
+
+    Initialize-KeepAChangelogFile @parameters | Out-Null
+}
+
+function script:Set-ReleaseReadyChangelog {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+        [Parameter(Mandatory)]
+        [pscustomobject]$LatestRelease
+    )
+
+    @"
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Fixed CLI parsing.
+
+## [$($LatestRelease.Version)] - $($LatestRelease.Date)
+
+### Added
+
+$($LatestRelease.Note)
+
+[Unreleased]: https://github.com/example/repo/compare/$($LatestRelease.Version)...HEAD
+[$($LatestRelease.Version)]: https://github.com/example/repo/compare/$($LatestRelease.PreviousVersion)...$($LatestRelease.Version)
+"@ | Set-Content -LiteralPath $Path -Encoding utf8
+}
+
+function script:Get-ReferenceFooterText {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$LineList,
+        [switch]$SeparateWithBlankLines
+    )
+
+    $separator = if ($SeparateWithBlankLines) { "`n`n" } else { "`n" }
+    return $LineList -join $separator
+}
+
+function script:Assert-OmittedFooterLinksAfterRelease {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+        [Parameter(Mandatory)]
+        [string]$Version,
+        [Parameter(Mandatory)]
+        [string]$Date
+    )
+
+    $result = Move-UnreleasedChangelog -Path $Path -Version $Version -Date $Date
+    $updated = Get-Content -LiteralPath $Path -Raw
+    $expectedReleaseHeading = "## [{0}] - {1}" -f $Version, $Date
+
+    $result.UpdatedUnreleasedLink | Should -BeNullOrEmpty
+    $result.NewReleaseCompareLink | Should -BeNullOrEmpty
+    $result.NewReleaseLink | Should -BeNullOrEmpty
+    $updated | Should -Match ([regex]::Escape($expectedReleaseHeading))
+    $updated | Should -Not -Match '(?m)^\[Unreleased\]:'
+    $updated | Should -Not -Match ("(?m)^\[{0}\]:" -f [regex]::Escape($Version))
+}
+
+BeforeAll {
+    . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Get-KeepAChangelogProjectRoot.ps1')
+    . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Import-KeepAChangelogSourceFile.ps1')
+
+    $projectRoot = Get-KeepAChangelogProjectRoot -StartPath $PSScriptRoot
+    Import-KeepAChangelogSourceFile -ProjectRoot $projectRoot -RelativePath @(
+        'src/private/initialize/*.ps1'
+        'src/private/shared/*.ps1'
+        'src/private/validation/*.ps1'
+        'src/private/release/*.ps1'
+        'src/public/Initialize-KeepAChangelogFile.ps1'
+        'src/public/Convert-ChangelogReleaseNotesToTagMessage.ps1'
+        'src/public/Get-KeepAChangelogVersion.ps1'
+        'src/public/Move-UnreleasedChangelog.ps1'
+    ) | ForEach-Object { . $_.FullName }
+}
+
+Describe 'Move-UnreleasedChangelog' {
+    It 'exposes RepositoryProvider with the supported provider values' {
+        $command = Get-Command -Name Move-UnreleasedChangelog
+        $validateSet = $command.Parameters['RepositoryProvider'].Attributes |
+            Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
+
+        $command.Parameters.ContainsKey('RepositoryProvider') | Should -BeTrue
+        $command.Parameters.ContainsKey('RepositoryTargetReference') | Should -BeTrue
+        $command.Parameters.ContainsKey('ReleaseReference') | Should -BeTrue
+        $validateSet.ValidValues | Should -Be @('GitHub', 'GitLab', 'AzureDevOps')
+    }
+
+    It 'moves unreleased notes into a release section, clears Unreleased, and updates compare links' {
+        $caseList = @(
+            @{
+                Name                   = 'compact-footer'
+                SeparateWithBlankLines = $false
+            }
+            @{
+                Name                   = 'spaced-footer'
+                SeparateWithBlankLines = $true
+            }
+        )
+
+        foreach ($case in $caseList) {
+            $path = Join-Path $TestDrive "CHANGELOG-$($case.Name).md"
+            $footer = Get-ReferenceFooterText `
+                -LineList @(
+                    '[Unreleased]: https://github.com/example/repo/compare/1.5.0...HEAD'
+                    '[1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0'
+                ) `
+                -SeparateWithBlankLines:$case.SeparateWithBlankLines
+
+            @"
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+### Fixed
+
+- Fixed CLI parsing.
+
+## [1.5.0] - 2026-04-10
+
+### Added
+
+- Previous release notes.
+
+$footer
+"@ | Set-Content -LiteralPath $path -Encoding utf8
+
+            $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30'
+            $updated = Get-Content -LiteralPath $path -Raw
+
+            $result.ReleaseNotesBody | Should -Be "### Fixed`n`n- Fixed CLI parsing."
+            $result.ClearedUnreleasedBody | Should -Be "### Added`n`n### Fixed"
+            $result.PreviousReleaseReference | Should -Be '1.5.0'
+            $result.NewReleaseCompareLink | Should -Be 'https://github.com/example/repo/compare/1.5.0...1.6.0'
+            $result.TagMessageText | Should -Be "Fixed`n`nFixed CLI parsing."
+            $updated | Should -Match '## \[1\.6\.0\] - 2026-04-30'
+            $updated | Should -Match '(?s)## \[1\.6\.0\] - 2026-04-30\s+### Fixed\s+- Fixed CLI parsing\.\s+## \[1\.5\.0\] - 2026-04-10'
+            $updated | Should -Match '(?s)## \[Unreleased\]\s+### Added\s+### Fixed'
+            $updated | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/1\.6\.0\.\.\.HEAD'
+            $updated | Should -Match '\[1\.6\.0\]: https://github\.com/example/repo/compare/1\.5\.0\.\.\.1\.6\.0'
+            $result.KeepAChangelogVersion | Should -Be (Get-KeepAChangelogVersion)
+        }
+    }
+
+    It 'supports simple unreleased notes without subsection headings' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+- Fixed CLI parsing.
+
+## [1.5.0] - 2026-04-10
+
+### Added
+
+- Previous release notes.
+
+[Unreleased]: https://github.com/example/repo/compare/1.5.0...HEAD
+[1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30'
+        $updated = Get-Content -LiteralPath $path -Raw
+
+        $result.ReleaseNotesBody | Should -Be '- Fixed CLI parsing.'
+        $result.ClearedUnreleasedBody | Should -Be ''
+        $updated | Should -Match '(?s)## \[Unreleased\]\s+## \[1\.6\.0\] - 2026-04-30'
+        $updated | Should -Match '(?s)## \[1\.6\.0\] - 2026-04-30\s+- Fixed CLI parsing\.'
+    }
+
+    It 'does not duplicate an existing release compare link' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Fixed CLI parsing.
+
+## [1.5.0] - 2026-04-10
+
+### Added
+
+- Previous release notes.
+
+[Unreleased]: https://github.com/example/repo/compare/1.5.0...HEAD
+[1.6.0]: https://github.com/example/repo/compare/1.5.0...1.6.0
+[1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30' | Out-Null
+
+        $updated = Get-Content -LiteralPath $path -Raw
+
+        ([regex]::Matches($updated, '(?m)^\[1\.6\.0\]:').Count) | Should -Be 1
+    }
+
+    It 'updates compare links from the last remaining release reference for <Name>' -ForEach @(
+        @{
+            Name                   = 're-releasing the same GitHub version'
+            FileName               = 'CHANGELOG-github-rerelease.md'
+            Text                   = @'
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Release notes moved back for editing.
+
+## [0.0.1] - 2026-05-01
+
+### Added
+
+- Initial release.
+
+[Unreleased]: https://github.com/example/repo/compare/0.1.0...HEAD
+[0.0.1]: https://github.com/example/repo/compare/develop...0.0.1
+'@
+            Version                = '0.1.0'
+            Date                   = '2026-05-04'
+            ExpectedPrevious       = '0.0.1'
+            ExpectedReleaseLink    = 'https://github.com/example/repo/compare/0.0.1...0.1.0'
+            ExpectedUnreleasedLink = '\[Unreleased\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.HEAD'
+            ExpectedVersionLink    = '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.0\.1\.\.\.0\.1\.0'
+            ForbiddenVersionLink   = '\[0\.1\.0\]: https://github\.com/example/repo/compare/0\.1\.0\.\.\.0\.1\.0'
+        }
+        @{
+            Name                   = 'updating a GitLab footer'
+            FileName               = 'CHANGELOG-gitlab-footer.md'
+            Text                   = @'
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Fixed CLI parsing.
+
+## [1.5.0] - 2026-04-10
+
+### Added
+
+- Previous release notes.
+
+[Unreleased]: https://gitlab.com/example/repo/-/compare/1.5.0...HEAD
+[1.5.0]: https://gitlab.com/example/repo/-/compare/1.4.0...1.5.0
+'@
+            Version                = '1.6.0'
+            Date                   = '2026-04-30'
+            ExpectedPrevious       = '1.5.0'
+            ExpectedReleaseLink    = 'https://gitlab.com/example/repo/-/compare/1.5.0...1.6.0'
+            ExpectedUnreleasedLink = '\[Unreleased\]: https://gitlab\.com/example/repo/-/compare/1\.6\.0\.\.\.HEAD'
+            ExpectedVersionLink    = '\[1\.6\.0\]: https://gitlab\.com/example/repo/-/compare/1\.5\.0\.\.\.1\.6\.0'
+            ForbiddenVersionLink   = $null
+        }
+    ) {
+        $path = Join-Path $TestDrive $FileName
+
+        $Text | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Move-UnreleasedChangelog -Path $path -Version $Version -Date $Date
+        $updated = Get-Content -LiteralPath $path -Raw
+
+        $result.PreviousReleaseReference | Should -Be $ExpectedPrevious
+        $result.NewReleaseCompareLink | Should -Be $ExpectedReleaseLink
+        $result.NewReleaseLink | Should -Be $ExpectedReleaseLink
+        $updated | Should -Match $ExpectedUnreleasedLink
+        $updated | Should -Match $ExpectedVersionLink
+
+        if (-not [string]::IsNullOrWhiteSpace($ForbiddenVersionLink)) {
+            $updated | Should -Not -Match $ForbiddenVersionLink
+        }
+    }
+
+    It 'adds footer links on the first release for <Name>' -ForEach @(
+        @{
+            Name                     = 'GitHub repository URLs'
+            FileName                 = 'CHANGELOG.md'
+            RepositoryUrl            = 'https://github.com/example/repo'
+            RepositoryProvider       = ''
+            RepositoryTargetReference = ''
+            ReleaseReference          = ''
+            ExpectedReleaseLink      = 'https://github.com/example/repo/releases/tag/1.0.0'
+            ExpectedUnreleasedFooter = '\[Unreleased\]: https://github\.com/example/repo/compare/1\.0\.0\.\.\.HEAD'
+            ExpectedReleaseFooter    = '\[1\.0\.0\]: https://github\.com/example/repo/releases/tag/1\.0\.0'
+        }
+        @{
+            Name                     = 'self-hosted GitLab repository URLs with an explicit provider'
+            FileName                 = 'CHANGELOG-gitlab-first-release.md'
+            RepositoryUrl            = 'https://code.example.com/group/project'
+            RepositoryProvider       = 'GitLab'
+            RepositoryTargetReference = ''
+            ReleaseReference          = ''
+            ExpectedReleaseLink      = 'https://code.example.com/group/project/-/tags/1.0.0'
+            ExpectedUnreleasedFooter = '\[Unreleased\]: https://code\.example\.com/group/project/-/compare/1\.0\.0\.\.\.HEAD'
+            ExpectedReleaseFooter    = '\[1\.0\.0\]: https://code\.example\.com/group/project/-/tags/1\.0\.0'
+        }
+        @{
+            Name                      = 'Azure DevOps repository URLs with explicit target and release refs'
+            FileName                  = 'CHANGELOG-azure-first-release.md'
+            RepositoryUrl             = 'https://ado.example.com/Org/Project/_git/Tools'
+            RepositoryProvider        = 'AzureDevOps'
+            RepositoryTargetReference = 'GBdevelop'
+            ReleaseReference          = 'GTv1.0.0'
+            ExpectedReleaseLink       = 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv1.0.0&targetVersion=GTv1.0.0&_a=commits'
+            ExpectedUnreleasedFooter  = '\[Unreleased\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv1\.0\.0&targetVersion=GBdevelop&_a=commits'
+            ExpectedReleaseFooter     = '\[1\.0\.0\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv1\.0\.0&targetVersion=GTv1\.0\.0&_a=commits'
+        }
+    ) {
+        $path = Join-Path $TestDrive $FileName
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Initial release notes.
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $parameters = @{
+            Path          = $path
+            Version       = '1.0.0'
+            Date          = '2026-05-01'
+            RepositoryUrl = $RepositoryUrl
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($RepositoryProvider)) {
+            $parameters.RepositoryProvider = $RepositoryProvider
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($RepositoryTargetReference)) {
+            $parameters.RepositoryTargetReference = $RepositoryTargetReference
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($ReleaseReference)) {
+            $parameters.ReleaseReference = $ReleaseReference
+        }
+
+        $result = Move-UnreleasedChangelog @parameters
+        $updated = Get-Content -LiteralPath $path -Raw
+
+        $result.PreviousReleaseReference | Should -BeNullOrEmpty
+        $result.NewReleaseCompareLink | Should -Be $ExpectedReleaseLink
+        $result.NewReleaseLink | Should -Be $ExpectedReleaseLink
+        $updated | Should -Match $ExpectedUnreleasedFooter
+        $updated | Should -Match $ExpectedReleaseFooter
+    }
+
+    It 'updates Azure DevOps compare links when the release reference is supplied explicitly' {
+        $path = Join-Path $TestDrive 'CHANGELOG-azure-existing-footer.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Azure DevOps follow-up notes.
+
+## [13.0.3] - 2026-05-01
+
+### Added
+
+- Previous release notes.
+
+[Unreleased]: https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.3&targetVersion=GBdevelop&_a=commits
+[13.0.3]: https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.2&targetVersion=GTv13.0.3&_a=commits
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Move-UnreleasedChangelog `
+            -Path $path `
+            -Version '13.0.4' `
+            -Date '2026-05-02' `
+            -ReleaseReference 'GTv13.0.4'
+        $updated = Get-Content -LiteralPath $path -Raw
+
+        $result.PreviousReleaseReference | Should -Be 'GTv13.0.3'
+        $result.NewReleaseCompareLink | Should -Be 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.3&targetVersion=GTv13.0.4&_a=commits'
+        $result.NewReleaseLink | Should -Be 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.3&targetVersion=GTv13.0.4&_a=commits'
+        $updated | Should -Match '\[Unreleased\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv13\.0\.4&targetVersion=GBdevelop&_a=commits'
+        $updated | Should -Match '\[13\.0\.4\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv13\.0\.3&targetVersion=GTv13\.0\.4&_a=commits'
+    }
+
+    It 'keeps footer links omitted for <Name>' -ForEach @(
+        @{
+            Name    = 'the first release without RepositoryUrl'
+            Text    = @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Initial release notes.
+'@
+            Version = '1.0.0'
+            Date    = '2026-05-01'
+        }
+        @{
+            Name    = 'a changelog with existing releases but no footer'
+            Text    = @'
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Follow-up release notes.
+
+## [1.5.0] - 2026-04-10
+
+### Added
+
+- Previous release notes.
+'@
+            Version = '1.6.0'
+            Date    = '2026-04-30'
+        }
+    ) {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        $Text | Set-Content -LiteralPath $path -Encoding utf8
+
+        Assert-OmittedFooterLinksAfterRelease -Path $path -Version $Version -Date $Date
+    }
+
+    It 'uses the version as the tag and the current date when Date is omitted' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+        $currentDate = Get-Date -Format 'yyyy-MM-dd'
+
+        Initialize-TestChangelog -Path $path -PreviousReleaseReference '1.0.0'
+
+        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0'
+
+        $result.Release.Tag | Should -Be '1.6.0'
+        $result.Release.Date | Should -Be $currentDate
+    }
+
+    It 'enforces release date ordering against the latest existing release' {
+        $caseList = @(
+            @{
+                Name            = 'earlier-date'
+                ReleaseDate     = '2026-05-01'
+                ExpectedMessage = "Release.Date '2026-05-01' cannot be earlier than latest existing release date '2026-05-02'."
+                ShouldThrow     = $true
+            }
+            @{
+                Name         = 'equal-date'
+                ReleaseDate  = '2026-05-02'
+                ExpectedDate = '2026-05-02'
+                ShouldThrow  = $false
+            }
+        )
+
+        foreach ($case in $caseList) {
+            $path = Join-Path $TestDrive "CHANGELOG-$($case.Name).md"
+            Set-ReleaseReadyChangelog `
+                -Path $path `
+                -LatestRelease ([pscustomobject]@{
+                    Version         = '1.5.0'
+                    Date            = '2026-05-02'
+                    PreviousVersion = '1.4.0'
+                    Note            = '- Previous release notes.'
+                })
+
+            if ($case.ShouldThrow) {
+                {
+                    Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date $case.ReleaseDate
+                } | Should -Throw $case.ExpectedMessage
+                continue
+            }
+
+            $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date $case.ReleaseDate
+            $result.Release.Date | Should -Be $case.ExpectedDate
+        }
+    }
+
+    It 'rejects the resolved current date when it is earlier than the latest existing release date' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+        $currentDate = Get-Date -Format 'yyyy-MM-dd'
+
+        Set-ReleaseReadyChangelog `
+            -Path $path `
+            -LatestRelease ([pscustomobject]@{
+                Version         = '9.9.9'
+                Date            = '2999-01-01'
+                PreviousVersion = '9.9.8'
+                Note            = '- Future release placeholder.'
+            })
+
+        {
+            Move-UnreleasedChangelog -Path $path -Version '10.0.0'
+        } | Should -Throw "Release.Date '$currentDate' cannot be earlier than latest existing release date '2999-01-01'."
+    }
+
+    It 'rejects an explicit Date with the wrong format' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        Initialize-KeepAChangelogFile `
+            -Path $path `
+            -RepositoryUrl 'https://github.com/example/repo' `
+            -PreviousReleaseReference '1.0.0' `
+            -Force | Out-Null
+
+        {
+            Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '05-02-2026'
+        } | Should -Throw "Date must use yyyy-MM-dd format. Received: '05-02-2026'."
+    }
+
+    It 'throws when Version is blank' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+        Initialize-KeepAChangelogFile -Path $path -RepositoryUrl 'https://github.com/example/repo' -Force | Out-Null
+
+        {
+            Move-UnreleasedChangelog -Path $path -Version '   '
+        } | Should -Throw 'Version is required.'
+    }
+
+    It 'throws when the target file is missing' {
+        $path = Join-Path $TestDrive 'missing.md'
+
+        {
+            Move-UnreleasedChangelog -Path $path -Version '1.0.0'
+        } | Should -Throw "Could not find CHANGELOG file at '$path'."
+    }
+
+    It 'returns preview data without writing changes when WhatIf is used' {
+        $path = Join-Path $TestDrive 'CHANGELOG.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Fixed CLI parsing.
+
+## [1.5.0] - 2026-04-10
+
+### Added
+
+- Previous release notes.
+
+[Unreleased]: https://github.com/example/repo/compare/1.5.0...HEAD
+[1.5.0]: https://github.com/example/repo/compare/1.4.0...1.5.0
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $before = Get-Content -LiteralPath $path -Raw
+
+        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30' -WhatIf
+        $after = Get-Content -LiteralPath $path -Raw
+
+        $result.Release.Version | Should -Be '1.6.0'
+        $result.KeepAChangelogVersion | Should -Be (Get-KeepAChangelogVersion)
+        $after | Should -Be $before
+    }
+}

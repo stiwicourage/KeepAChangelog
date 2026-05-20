@@ -52,7 +52,7 @@ This `README.md` is for **maintainers and contributors**. The GitHub Pages site 
 | `Pester` | Behavior tests and coverage generation | Run `Test-NovaBuild` or `./scripts/build/ci/Invoke-NovaModuleToolsCI.ps1` |
 | `PSScriptAnalyzer` | Static analysis for PowerShell source, scripts, and manifest files | Run `./scripts/build/Invoke-ScriptAnalyzerCI.ps1` |
 | `CodeScene` | Coverage gates in PRs, repository analysis in CI, and file-level Code Health review | Use the CodeScene UI / IDE integration for file health checks, and `./scripts/build/ci/Invoke-CodeSceneAnalysis.ps1` for coverage upload and analysis triggering |
-| `Codecov` | Publishes Cobertura coverage from CI | Maintainers normally interact with it through the `Run Tests` workflow |
+| `Codecov` | Publishes JaCoCo coverage from CI | Maintainers normally interact with it through the `Run Tests` workflow |
 | `CodeQL` | Security and code scanning on the GitHub Actions layer | Maintainers monitor the `CodeQL Advanced` workflow and resulting alerts |
 | `dependency-review-action` | Blocks PRs that introduce vulnerable dependency updates | Maintainers review the `Dependency review` workflow result on pull requests |
 | GitHub Pages | Hosts the user guide at `keepachangelog.ps` | Maintain `docs/index.html`, `docs/assets/`, and related site content |
@@ -160,9 +160,9 @@ Run it directly with:
 This is the CI-parity script used by the main test workflow. It:
 
 1. builds the module with `Invoke-NovaBuild`
-2. runs Pester with JUnit and Cobertura output
-3. remaps coverage back to source paths for downstream tools
-4. writes low-coverage details to `artifacts/coverage-low.txt`
+2. runs `Test-NovaBuild` through the CI wrapper
+3. keeps the JaCoCo coverage artifact under `artifacts/coverage.xml`
+4. copies the NUnit result into the CI artifact output directory
 
 Run it locally with:
 
@@ -173,12 +173,12 @@ Run it locally with:
 Expected artifacts include:
 
 - `artifacts/pester-junit.xml`
-- `artifacts/pester-coverage.cobertura.xml`
-- `artifacts/coverage-low.txt`
+- `artifacts/coverage.xml`
+- `artifacts/keepachangelog-nunit.xml`
 
 ### `scripts/build/ci/Invoke-CodeSceneAnalysis.ps1`
 
-Use this after the CI helper has produced Cobertura coverage and when you want to upload coverage or trigger a CodeScene analysis manually.
+Use this after the CI helper has produced JaCoCo coverage and when you want to upload coverage or trigger a CodeScene analysis manually.
 
 Requirements:
 
@@ -193,7 +193,7 @@ Typical usage:
 
 What to expect:
 
-- coverage upload uses the Cobertura artifact under `artifacts/` unless you pass `-CoveragePath`
+- coverage upload uses `artifacts/coverage.xml` unless you pass `-CoveragePath`
 - the script throws on missing configuration, missing coverage, upload failure, or most API failures
 - CodeScene rate-limit responses are downgraded to a warning so the job can continue
 

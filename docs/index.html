@@ -107,8 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
           </h3>
 
           <p>
-            The module keeps the <code>Unreleased</code> section, optional compare links, release headings,
-            and release-note formatting consistent so you do not have to.
+            The module keeps the <code>Unreleased</code> section, provider-aware compare links,
+            release headings, and release-note formatting consistent so you do not have to.
           </p>
 
           <h3 id="who">
@@ -138,7 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             <li>Create a new <code>CHANGELOG.md</code> template that follows Keep a Changelog.</li>
             <li>Add standard section headings such as <code>Added</code>, <code>Changed</code>, and <code>Fixed</code>.</li>
             <li>Include an optional <code>[Unreleased]</code> compare link footer when a previous release reference exists.</li>
-            <li>Validate an existing changelog and return structured errors when the file does not follow the expected format.</li>
+            <li>Generate and preserve footer links for GitHub, GitLab, and Azure DevOps repositories.</li>
+            <li>Validate an existing changelog and return structured errors when the file does not follow the expected format, including provider-specific footer links.</li>
             <li>Move unreleased notes into a new release section and clear the unreleased body for the next cycle.</li>
             <li>Update compare links and release links automatically as part of the release move when footer links are being maintained.</li>
             <li>Convert markdown release notes into a plain-text tag message for git tags or release automation.</li>
@@ -173,6 +174,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             Yes. You can initialize a new changelog without footer links. On the first release,
             pass <code>-RepositoryUrl</code> so the module can create the initial compare and release
             links.
+          </p>
+
+          <p>
+            If the repository host alone does not identify the provider clearly, pass
+            <code>-RepositoryProvider</code>. This is especially useful for self-hosted GitLab
+            repositories and Azure DevOps repositories that need explicit
+            <code>-RepositoryTargetReference</code> values.
           </p>
 
           <p>
@@ -252,6 +260,24 @@ Install-PSResource -Name KeepAChangelog</code></pre>
     -RepositoryUrl https://github.com/example/repo `
     -PreviousReleaseReference develop</code></pre>
 
+          <p>
+            For self-hosted GitLab or Azure DevOps repositories, add the provider-specific
+            parameters when the default GitHub-style link format would be wrong.
+          </p>
+
+          <pre><code>Initialize-KeepAChangelogFile `
+    -Path ./CHANGELOG.md `
+    -RepositoryUrl https://code.example.com/group/project `
+    -RepositoryProvider GitLab `
+    -PreviousReleaseReference 1.5.2
+
+Initialize-KeepAChangelogFile `
+    -Path ./CHANGELOG.md `
+    -RepositoryUrl https://ado.example.com/Org/Project/_git/Tools `
+    -RepositoryProvider AzureDevOps `
+    -RepositoryTargetReference GBdevelop `
+    -PreviousReleaseReference GTv1.5.2</code></pre>
+
           <h4 id="validate-command">
             <a aria-hidden="true" class="anchor" href="#validate-command"></a>
             Validate a changelog
@@ -291,6 +317,20 @@ $result.Errors</code></pre>
     -Path ./CHANGELOG.md `
     -Version 1.6.0 `
     -Date 2026-04-30</code></pre>
+
+          <p>
+            Azure DevOps repositories need an explicit target ref for the updated
+            <code>[Unreleased]</code> link, and they can also use a separate release ref when the
+            compare-link token differs from the visible changelog version.
+          </p>
+
+          <pre><code>Move-UnreleasedChangelog `
+    -Path ./CHANGELOG.md `
+    -Version 13.0.4 `
+    -RepositoryUrl https://ado.example.com/Org/Project/_git/Tools `
+    -RepositoryProvider AzureDevOps `
+    -RepositoryTargetReference GBdevelop `
+    -ReleaseReference GTv13.0.4</code></pre>
 
           <h4 id="tag-message-command">
             <a aria-hidden="true" class="anchor" href="#tag-message-command"></a>

@@ -1,7 +1,7 @@
 {
   "ProjectName": "KeepAChangelog",
   "Description": "PowerShell helpers for creating, validating, and releasing Keep a Changelog files.",
-  "Version": "0.2.5",
+  "Version": "0.2.6-preview",
   "Preamble": [
     "Set-StrictMode -Version Latest"
   ],
@@ -34,6 +34,16 @@
     }
   },
   "Pester": {
+    "CodeCoverage": {
+      "Enabled": true,
+      "Path": [
+        "src/public/*.ps1",
+        "src/private/**/*.ps1"
+      ],
+      "CoveragePercentTarget": 99,
+      "OutputPath": "artifacts/coverage.xml",
+      "OutputFormat": "JaCoCo"
+    },
     "TestResult": {
       "Enabled": true,
       "OutputFormat": "NUnitXml"

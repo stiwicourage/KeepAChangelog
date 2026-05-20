@@ -18,8 +18,9 @@ function Assert-KeepAChangelogRelease {
     }
 
     return [pscustomobject]@{
-        Version = [string]$Release.Version
-        Date    = [string]$Release.Date
-        Tag     = [string]$Release.Tag
+        Version   = [string]$Release.Version
+        Date      = [string]$Release.Date
+        Tag       = [string]$Release.Tag
+        Reference = if (-not $Release.ContainsKey('Reference') -or [string]::IsNullOrWhiteSpace([string]$Release['Reference'])) { [string]$Release.Tag } else { [string]$Release['Reference'] }
     }
 }

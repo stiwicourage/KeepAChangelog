@@ -12,30 +12,49 @@ function Move-UnreleasedChangelog {
         [string]$RepositoryUrl
     )
 
-    if ([string]::IsNullOrWhiteSpace($Version)) {
-        throw 'Version is required.'
+    dynamicparam {
+        return Get-KeepAChangelogRepositoryProviderParameterDictionary `
+            -IncludeRepositoryTargetReference `
+            -IncludeReleaseReference
     }
 
-    if (-not (Test-Path -LiteralPath $Path)) {
-        throw "Could not find CHANGELOG file at '$Path'."
-    }
+    begin {
+        if ([string]::IsNullOrWhiteSpace($Version)) {
+            throw 'Version is required.'
+        }
 
-    $releaseDate = Resolve-KeepAChangelogReleaseDate -Date $Date
-    $release = @{
-        Version = $Version
-        Date    = $releaseDate
-        Tag     = $Version
-    }
+        if (-not (Test-Path -LiteralPath $Path)) {
+            throw "Could not find CHANGELOG file at '$Path'."
+        }
 
-    $text = Get-Content -LiteralPath $Path -Raw
-    $result = Resolve-KeepAChangelogReleaseData -Text $text -Release $release -RepositoryUrl $RepositoryUrl
-    $result | Add-Member -NotePropertyName KeepAChangelogVersion -NotePropertyValue (Get-KeepAChangelogModuleVersion) -Force
-    $targetVersion = $result.Release.Version
+        $releaseDate = Resolve-KeepAChangelogReleaseDate -Date $Date
+        $releaseReference = $PSBoundParameters['ReleaseReference']
+        $release = @{
+            Version   = $Version
+            Date      = $releaseDate
+            Tag       = $Version
+            Reference = if ([string]::IsNullOrWhiteSpace($releaseReference)) { $Version } else { $releaseReference }
+        }
 
-    if (-not $PSCmdlet.ShouldProcess($Path, "Promote [Unreleased] to [$targetVersion]")) {
+        $repositoryProvider = $PSBoundParameters['RepositoryProvider']
+        $repositoryTargetReference = $PSBoundParameters['RepositoryTargetReference']
+        $repositoryState = Get-KeepAChangelogRepositoryState `
+            -RepositoryUrl $RepositoryUrl `
+            -RepositoryProvider $repositoryProvider `
+            -RepositoryTargetReference $repositoryTargetReference
+        $text = Get-Content -LiteralPath $Path -Raw
+        $result = Resolve-KeepAChangelogReleaseData `
+            -Text $text `
+            -Release $release `
+            -RepositoryState $repositoryState
+        $result | Add-Member -NotePropertyName KeepAChangelogVersion -NotePropertyValue (Get-KeepAChangelogModuleVersion) -Force
+        $targetVersion = $result.Release.Version
+
+        if (-not $PSCmdlet.ShouldProcess($Path, "Promote [Unreleased] to [$targetVersion]")) {
+            return $result
+        }
+
+        Set-Content -LiteralPath $Path -Value $result.UpdatedText -Encoding utf8
         return $result
     }
-
-    Set-Content -LiteralPath $Path -Value $result.UpdatedText -Encoding utf8
-    return $result
 }
