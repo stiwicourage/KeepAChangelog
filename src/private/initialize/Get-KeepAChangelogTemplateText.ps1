@@ -2,16 +2,16 @@ function Get-KeepAChangelogTemplateText {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$RepositoryUrl,
-        [string]$RepositoryProvider,
+        [pscustomobject]$RepositoryState,
+
         [string]$PreviousReleaseReference,
+
         [Parameter(Mandatory)]
         [string[]]$SectionHeading
     )
 
     $footerLine = Get-KeepAChangelogFooterLine `
-        -RepositoryUrl $RepositoryUrl `
-        -RepositoryProvider $RepositoryProvider `
+        -RepositoryState $RepositoryState `
         -PreviousReleaseReference $PreviousReleaseReference
     $lineList = @(
         '# Changelog'

@@ -2,8 +2,8 @@ function Get-KeepAChangelogFooterLine {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$RepositoryUrl,
-        [string]$RepositoryProvider,
+        [pscustomobject]$RepositoryState,
+
         [string]$PreviousReleaseReference
     )
 
@@ -11,8 +11,11 @@ function Get-KeepAChangelogFooterLine {
         return $null
     }
 
-    $repositoryLinkData = Get-KeepAChangelogRepositoryLinkData `
-        -RepositoryUrl $RepositoryUrl `
-        -RepositoryProvider $RepositoryProvider
-    return "[Unreleased]: $($repositoryLinkData.UnreleasedCompareLinkPrefix)$PreviousReleaseReference...HEAD"
+    $repositoryLinkData = Get-KeepAChangelogRepositoryLinkData -RepositoryState $RepositoryState
+    $compareLink = Get-KeepAChangelogCompareLink `
+        -RepositoryLinkData $repositoryLinkData `
+        -BaseReference $PreviousReleaseReference `
+        -TargetReference $repositoryLinkData.UnreleasedTargetReference
+
+    return "[Unreleased]: $compareLink"
 }

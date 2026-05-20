@@ -3,14 +3,16 @@ function Get-KeepAChangelogRepositoryState {
     param(
         [string]$RepositoryUrl,
         [string]$RepositoryProvider,
+        [string]$RepositoryTargetReference,
         [AllowEmptyString()]
         [string]$Footer
     )
 
     return [pscustomobject]@{
-        Footer             = $Footer
-        RepositoryProvider = $RepositoryProvider
-        RepositoryUrl      = $RepositoryUrl
+        Footer                    = $Footer
+        RepositoryProvider        = $RepositoryProvider
+        RepositoryTargetReference = $RepositoryTargetReference
+        RepositoryUrl             = $RepositoryUrl
     }
 }
 
@@ -52,16 +54,23 @@ function Get-KeepAChangelogRepositoryContext {
         return [pscustomobject]@{
             RepositoryUrl               = $null
             UnreleasedCompareLinkPrefix = $null
+            UnreleasedTargetReference   = $null
+            CompareLinkPrefix           = $null
+            CompareLinkSeparator        = $null
+            CompareLinkSuffix           = $null
             ReleaseTagPrefix            = $null
             PreviousReleaseReference    = $null
             ShouldWriteReferenceFooter  = $false
         }
     }
 
-    $repositoryLinkData = Get-KeepAChangelogRepositoryLinkData `
-        -RepositoryUrl $normalizedRepositoryUrl `
-        -RepositoryProvider $RepositoryState.RepositoryProvider `
-        -UnreleasedCompareLinkPrefix $unreleasedCompareLinkPrefix
+    $repositoryLinkData = Get-KeepAChangelogRepositoryLinkData -RepositoryState ([pscustomobject]@{
+            RepositoryUrl             = $normalizedRepositoryUrl
+            RepositoryProvider        = $RepositoryState.RepositoryProvider
+            RepositoryTargetReference = $RepositoryState.RepositoryTargetReference
+            UnreleasedCompareLinkPrefix = $unreleasedCompareLinkPrefix
+            UnreleasedTargetReference = $Validation.UnreleasedTargetReference
+        })
 
     $previousReleaseReference = Get-KeepAChangelogPreviousReleaseReference `
         -Footer $RepositoryState.Footer `
@@ -72,6 +81,9 @@ function Get-KeepAChangelogRepositoryContext {
         RepositoryProvider          = $repositoryLinkData.RepositoryProvider
         RepositoryUrl               = $repositoryLinkData.RepositoryUrl
         UnreleasedCompareLinkPrefix = $repositoryLinkData.UnreleasedCompareLinkPrefix
+        UnreleasedTargetReference   = $repositoryLinkData.UnreleasedTargetReference
+        CompareLinkSeparator        = $repositoryLinkData.CompareLinkSeparator
+        CompareLinkSuffix           = $repositoryLinkData.CompareLinkSuffix
         ReleaseTagPrefix            = $repositoryLinkData.ReleaseTagPrefix
         PreviousReleaseReference    = $previousReleaseReference
         ShouldWriteReferenceFooter  = $true
@@ -131,8 +143,7 @@ function Resolve-KeepAChangelogReleaseData {
         [Parameter(Mandatory)]
         [hashtable]$Release,
 
-        [string]$RepositoryUrl,
-        [string]$RepositoryProvider
+        [pscustomobject]$RepositoryState
     )
 
     $normalizedRelease = Assert-KeepAChangelogRelease -Release $Release
@@ -142,8 +153,9 @@ function Resolve-KeepAChangelogReleaseData {
     Assert-KeepAChangelogReleaseDateOrder -Body $parts.Body -Release $normalizedRelease
     $unreleasedSectionMatch = Get-UnreleasedSectionMatch -Text $parts.Body
     $repositoryState = Get-KeepAChangelogRepositoryState `
-        -RepositoryUrl $RepositoryUrl `
-        -RepositoryProvider $RepositoryProvider `
+        -RepositoryUrl $RepositoryState.RepositoryUrl `
+        -RepositoryProvider $RepositoryState.RepositoryProvider `
+        -RepositoryTargetReference $RepositoryState.RepositoryTargetReference `
         -Footer $parts.Footer
     $repositoryContext = Get-KeepAChangelogRepositoryContext `
         -RepositoryState $repositoryState `

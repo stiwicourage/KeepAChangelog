@@ -11,12 +11,34 @@ BeforeAll {
 
 Describe 'Get-KeepAChangelogTemplateText' {
     It 'includes a GitLab compare footer when the explicit provider is GitLab' {
+        $repositoryState = [pscustomobject]@{
+            RepositoryUrl             = 'https://code.example.com/group/project'
+            RepositoryProvider        = 'GitLab'
+            RepositoryTargetReference = ''
+            UnreleasedCompareLinkPrefix = ''
+            UnreleasedTargetReference = ''
+        }
         $result = Get-KeepAChangelogTemplateText `
-            -RepositoryUrl 'https://code.example.com/group/project' `
-            -RepositoryProvider 'GitLab' `
+            -RepositoryState $repositoryState `
             -PreviousReleaseReference '1.0.0' `
             -SectionHeading @('Added', 'Fixed')
 
         $result | Should -Match '\[Unreleased\]: https://code\.example\.com/group/project/-/compare/1\.0\.0\.\.\.HEAD'
+    }
+
+    It 'includes an Azure DevOps compare footer when the explicit target reference is supplied' {
+        $repositoryState = [pscustomobject]@{
+            RepositoryUrl             = 'https://ado.example.com/Org/Project/_git/Tools'
+            RepositoryProvider        = 'AzureDevOps'
+            RepositoryTargetReference = 'GBdevelop'
+            UnreleasedCompareLinkPrefix = ''
+            UnreleasedTargetReference = ''
+        }
+        $result = Get-KeepAChangelogTemplateText `
+            -RepositoryState $repositoryState `
+            -PreviousReleaseReference 'GTv1.0.0' `
+            -SectionHeading @('Added', 'Fixed')
+
+        $result | Should -Match '\[Unreleased\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv1\.0\.0&targetVersion=GBdevelop&_a=commits'
     }
 }

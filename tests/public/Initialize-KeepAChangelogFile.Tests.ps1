@@ -18,7 +18,8 @@ Describe 'Initialize-KeepAChangelogFile' {
             Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
 
         $command.Parameters.ContainsKey('RepositoryProvider') | Should -BeTrue
-        $validateSet.ValidValues | Should -Be @('GitHub', 'GitLab')
+        $command.Parameters.ContainsKey('RepositoryTargetReference') | Should -BeTrue
+        $validateSet.ValidValues | Should -Be @('GitHub', 'GitLab', 'AzureDevOps')
     }
 
     It 'creates a changelog template with standard headings and an Unreleased compare link when PreviousReleaseReference is provided' -ForEach @(
@@ -27,6 +28,8 @@ Describe 'Initialize-KeepAChangelogFile' {
             FileName              = 'CHANGELOG-github.md'
             RepositoryUrl         = 'https://github.com/example/repo'
             RepositoryProvider    = 'GitHub'
+            PreviousReleaseReference = $null
+            RepositoryTargetReference = ''
             ExpectedFooterPattern = '\[Unreleased\]: https://github\.com/example/repo/compare/1\.0\.0\.\.\.HEAD'
         }
         @{
@@ -34,6 +37,8 @@ Describe 'Initialize-KeepAChangelogFile' {
             FileName              = 'CHANGELOG-gitlab.md'
             RepositoryUrl         = 'https://gitlab.com/example/repo'
             RepositoryProvider    = ''
+            PreviousReleaseReference = $null
+            RepositoryTargetReference = ''
             ExpectedFooterPattern = '\[Unreleased\]: https://gitlab\.com/example/repo/-/compare/1\.0\.0\.\.\.HEAD'
         }
         @{
@@ -41,7 +46,18 @@ Describe 'Initialize-KeepAChangelogFile' {
             FileName              = 'CHANGELOG-self-hosted-gitlab.md'
             RepositoryUrl         = 'https://code.example.com/group/project'
             RepositoryProvider    = 'GitLab'
+            PreviousReleaseReference = $null
+            RepositoryTargetReference = ''
             ExpectedFooterPattern = '\[Unreleased\]: https://code\.example\.com/group/project/-/compare/1\.0\.0\.\.\.HEAD'
+        }
+        @{
+            Name                      = 'Azure DevOps repository URLs with explicit target and provider'
+            FileName                  = 'CHANGELOG-azure-devops.md'
+            RepositoryUrl             = 'https://ado.example.com/Org/Project/_git/Tools'
+            RepositoryProvider        = 'AzureDevOps'
+            PreviousReleaseReference  = 'GTv1.0.0'
+            RepositoryTargetReference = 'GBdevelop'
+            ExpectedFooterPattern     = '\[Unreleased\]: https://ado\.example\.com/Org/Project/_git/Tools/branchCompare\?baseVersion=GTv1\.0\.0&targetVersion=GBdevelop&_a=commits'
         }
     ) {
         $path = Join-Path $TestDrive $FileName
@@ -49,11 +65,15 @@ Describe 'Initialize-KeepAChangelogFile' {
         $parameters = @{
             Path                     = $path
             RepositoryUrl            = $RepositoryUrl
-            PreviousReleaseReference = '1.0.0'
+            PreviousReleaseReference = if ($null -ne $PreviousReleaseReference) { $PreviousReleaseReference } else { '1.0.0' }
         }
 
         if (-not [string]::IsNullOrWhiteSpace($RepositoryProvider)) {
             $parameters.RepositoryProvider = $RepositoryProvider
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($RepositoryTargetReference)) {
+            $parameters.RepositoryTargetReference = $RepositoryTargetReference
         }
 
         $result = Initialize-KeepAChangelogFile @parameters
@@ -92,6 +112,18 @@ Describe 'Initialize-KeepAChangelogFile' {
 
         $result.PreviousReleaseReference | Should -Be 'develop'
         $text | Should -Match '\[Unreleased\]: https://github\.com/example/repo/compare/develop\.\.\.HEAD'
+    }
+
+    It 'requires RepositoryTargetReference when Azure DevOps footer links must be generated' {
+        $path = Join-Path $TestDrive 'CHANGELOG-azure-missing-target.md'
+
+        {
+            Initialize-KeepAChangelogFile `
+                -Path $path `
+                -RepositoryUrl 'https://ado.example.com/Org/Project/_git/Tools' `
+                -RepositoryProvider 'AzureDevOps' `
+                -PreviousReleaseReference 'GTv1.0.0'
+        } | Should -Throw 'RepositoryTargetReference is required when AzureDevOps footer links must be generated.'
     }
 
     It 'does not export the old New-KeepAChangelogFile command name' {

@@ -31,6 +31,7 @@ function Get-KeepAChangelogValidationResult {
         IsValid                     = ($errorList.Count -eq 0)
         Errors                      = @($errorList.ToArray())
         UnreleasedCompareLinkPrefix = $unreleasedCompareLinkData.UnreleasedCompareLinkPrefix
+        UnreleasedTargetReference   = $unreleasedCompareLinkData.UnreleasedTargetReference
         PreviousReleaseReference    = $unreleasedCompareLinkData.PreviousReleaseReference
         ReleaseVersions             = @($releaseVersionList.ToArray())
     }

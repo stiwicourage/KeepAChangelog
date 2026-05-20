@@ -194,6 +194,35 @@ Describe 'Test-KeepAChangelogFile' {
         $result.PreviousReleaseReference | Should -Be '1.0.0'
     }
 
+    It 'accepts Azure DevOps compare links in the reference footer' {
+        $path = Join-Path $TestDrive 'CHANGELOG-azure.md'
+
+        @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+## [13.0.3] - 2026-05-01
+
+### Added
+
+- Initial release.
+
+[Unreleased]: https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.3&targetVersion=GBdevelop&_a=commits
+[13.0.3]: https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.2&targetVersion=GTv13.0.3&_a=commits
+'@ | Set-Content -LiteralPath $path -Encoding utf8
+
+        $result = Test-KeepAChangelogFile -Path $path
+
+        $result.IsValid | Should -BeTrue
+        @($result.Errors).Count | Should -Be 0
+        $result.UnreleasedCompareLinkPrefix | Should -Be 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion='
+        $result.UnreleasedTargetReference | Should -Be 'GBdevelop'
+        $result.PreviousReleaseReference | Should -Be 'GTv13.0.3'
+    }
+
     It 'accepts yanked release headings that follow the Keep a Changelog format' {
         $caseList = @(
             @{

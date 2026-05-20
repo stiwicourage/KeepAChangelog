@@ -20,7 +20,11 @@ Describe 'Resolve-KeepAChangelogReleaseData' {
                 Version = '1.0.0'
                 Date    = '2026-05-03'
                 Tag     = '1.0.0'
-            }
+            } -RepositoryState ([pscustomobject]@{
+                    RepositoryUrl             = ''
+                    RepositoryProvider        = ''
+                    RepositoryTargetReference = ''
+                })
         }
         catch {
             $errorMessage = $_.Exception.Message
@@ -42,7 +46,11 @@ Describe 'Resolve-KeepAChangelogReleaseData' {
             Version = '1.0.0'
             Date    = '2026-05-03'
             Tag     = '1.0.0'
-        } -RepositoryUrl 'https://gitlab.com/example/repo'
+        } -RepositoryState ([pscustomobject]@{
+                RepositoryUrl             = 'https://gitlab.com/example/repo'
+                RepositoryProvider        = ''
+                RepositoryTargetReference = ''
+            })
 
         $result.UnreleasedCompareLinkPrefix | Should -Be 'https://gitlab.com/example/repo/-/compare/'
         $result.UpdatedUnreleasedLink | Should -Be 'https://gitlab.com/example/repo/-/compare/1.0.0...HEAD'
@@ -62,10 +70,39 @@ Describe 'Resolve-KeepAChangelogReleaseData' {
             Version = '1.0.0'
             Date    = '2026-05-03'
             Tag     = '1.0.0'
-        } -RepositoryUrl 'https://code.example.com/group/project' -RepositoryProvider 'GitLab'
+        } -RepositoryState ([pscustomobject]@{
+                RepositoryUrl             = 'https://code.example.com/group/project'
+                RepositoryProvider        = 'GitLab'
+                RepositoryTargetReference = ''
+            })
 
         $result.UnreleasedCompareLinkPrefix | Should -Be 'https://code.example.com/group/project/-/compare/'
         $result.UpdatedUnreleasedLink | Should -Be 'https://code.example.com/group/project/-/compare/1.0.0...HEAD'
         $result.NewReleaseLink | Should -Be 'https://code.example.com/group/project/-/tags/1.0.0'
+    }
+
+    It 'builds Azure DevOps compare links when the provider-specific refs are supplied' {
+        $result = Resolve-KeepAChangelogReleaseData -Text @'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Initial release notes.
+'@ -Release @{
+            Version   = '13.0.4'
+            Date      = '2026-05-03'
+            Tag       = '13.0.4'
+            Reference = 'GTv13.0.4'
+        } -RepositoryState ([pscustomobject]@{
+                RepositoryUrl             = 'https://ado.example.com/Org/Project/_git/Tools'
+                RepositoryProvider        = 'AzureDevOps'
+                RepositoryTargetReference = 'GBdevelop'
+            })
+
+        $result.UnreleasedCompareLinkPrefix | Should -Be 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion='
+        $result.UpdatedUnreleasedLink | Should -Be 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.4&targetVersion=GBdevelop&_a=commits'
+        $result.NewReleaseLink | Should -Be 'https://ado.example.com/Org/Project/_git/Tools/branchCompare?baseVersion=GTv13.0.4&targetVersion=GTv13.0.4&_a=commits'
     }
 }
