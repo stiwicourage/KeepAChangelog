@@ -15,6 +15,7 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 
 ### Fixed
 
+- Fixed the GitHub Actions CodeScene coverage workflow to use the JaCoCo `artifacts/coverage.xml` artifact produced by the current test flow.
 - Improved `Test-KeepAChangelogFile` diagnostics so obvious but invalid `Unreleased` heading variants now report the found heading and the expected `## [Unreleased]` format.
 
 ### Security

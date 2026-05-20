@@ -20,6 +20,6 @@ Improve changed-code coverage in KeepAChangelog without lowering maintainability
 ## Repository-specific reminders
 
 - Many tests expect a built `dist/KeepAChangelog` module.
-- The CI coverage flow writes `artifacts/pester-coverage.cobertura.xml`.
+- The CI coverage flow writes `artifacts/coverage.xml`.
 - Use `Test-NovaBuild` as the project test entrypoint; direct `Invoke-Pester` can miss Nova-specific strict-mode behavior.
 - Do not "fix" coverage by weakening assertions or suppressing quality tooling warnings.

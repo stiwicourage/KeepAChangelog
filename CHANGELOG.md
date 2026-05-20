@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Fixed the GitHub Actions CodeScene coverage flow so source-mirrored tests publish and gate against the JaCoCo `artifacts/coverage.xml` artifact instead of the retired Cobertura path.
 - Improved `Test-KeepAChangelogFile` diagnostics so obvious but invalid `Unreleased` heading variants now report the found heading and the expected `## [Unreleased]` format instead of only reporting the section as missing.
 
 ### Security
