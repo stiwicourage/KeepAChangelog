@@ -8,12 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Added repository-scoped Agentic Copilot workflow scaffolding for maintainers, including specialized agents, reusable prompts, instruction files, skills, a streamlined pull request template, updated contribution guidance, and an internal `RELEASE_NOTE.md` placeholder for future interface-facing release summaries.
-- Added provider-aware footer-link support so changelog initialization, validation, and release updates can generate and preserve GitHub, GitLab, and Azure DevOps footer links.
-  - `Initialize-KeepAChangelogFile` and `Move-UnreleasedChangelog` now accept `-RepositoryProvider` when the repository host alone is not enough to identify the provider.
-  - Self-hosted GitLab repositories can use `-RepositoryProvider GitLab` to generate GitLab `/-/compare/` and `/-/tags/` links.
-  - Azure DevOps repositories can use `-RepositoryProvider AzureDevOps`, `-RepositoryTargetReference`, and `-ReleaseReference` to generate `branchCompare` footer links with explicit target and release refs.
-
 ### Changed
 
 ### Deprecated
@@ -22,10 +16,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+### Security
+
+## [0.3.0] - 2026-05-20
+
+### Added
+
+- Added repository-scoped Agentic Copilot workflow scaffolding for maintainers, including specialized agents, reusable prompts, instruction files, skills, a streamlined pull request template, updated contribution guidance, and an internal `RELEASE_NOTE.md` placeholder for future interface-facing release summaries.
+- Added provider-aware footer-link support so changelog initialization, validation, and release updates can generate and preserve GitHub, GitLab, and Azure DevOps footer links.
+  - `Initialize-KeepAChangelogFile` and `Move-UnreleasedChangelog` now accept `-RepositoryProvider` when the repository host alone is not enough to identify the provider.
+  - Self-hosted GitLab repositories can use `-RepositoryProvider GitLab` to generate GitLab `/-/compare/` and `/-/tags/` links.
+  - Azure DevOps repositories can use `-RepositoryProvider AzureDevOps`, `-RepositoryTargetReference`, and `-ReleaseReference` to generate `branchCompare` footer links with explicit target and release refs.
+
+### Fixed
+
 - Fixed the GitHub Actions CodeScene coverage flow so source-mirrored tests publish and gate against the JaCoCo `artifacts/coverage.xml` artifact instead of the retired Cobertura path.
 - Improved `Test-KeepAChangelogFile` diagnostics so obvious but invalid `Unreleased` heading variants now report the found heading and the expected `## [Unreleased]` format instead of only reporting the section as missing.
-
-### Security
 
 ## [0.2.5] - 2026-05-15
 
@@ -81,7 +87,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Created command `Initialize-KeepAChangelogFile`, allowed without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
 - Created command `Move-UnreleasedChangelog`, `-Version` is required release input, and `-Date` is optional with `yyyy-MM-dd` validation.
 
-[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.5...HEAD
+[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.5...0.3.0
 [0.2.5]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.3...0.2.4
 [0.2.3]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.2...0.2.3
@@ -90,3 +97,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.2.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/stiwicourage/KeepAChangelog/compare/103d84a...0.1.1
+
