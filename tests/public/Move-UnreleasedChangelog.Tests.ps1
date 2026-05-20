@@ -60,6 +60,29 @@ function script:Get-ReferenceFooterText {
     return $LineList -join $separator
 }
 
+function script:Assert-OmittedFooterLinksAfterRelease {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+        [Parameter(Mandatory)]
+        [string]$Version,
+        [Parameter(Mandatory)]
+        [string]$Date
+    )
+
+    $result = Move-UnreleasedChangelog -Path $Path -Version $Version -Date $Date
+    $updated = Get-Content -LiteralPath $Path -Raw
+    $expectedReleaseHeading = "## [{0}] - {1}" -f $Version, $Date
+
+    $result.UpdatedUnreleasedLink | Should -BeNullOrEmpty
+    $result.NewReleaseCompareLink | Should -BeNullOrEmpty
+    $result.NewReleaseLink | Should -BeNullOrEmpty
+    $updated | Should -Match ([regex]::Escape($expectedReleaseHeading))
+    $updated | Should -Not -Match '(?m)^\[Unreleased\]:'
+    $updated | Should -Not -Match ("(?m)^\[{0}\]:" -f [regex]::Escape($Version))
+}
+
 BeforeAll {
     . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Get-KeepAChangelogProjectRoot.ps1')
     . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Import-KeepAChangelogSourceFile.ps1')
@@ -267,14 +290,7 @@ $footer
 - Initial release notes.
 '@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        $result = Move-UnreleasedChangelog -Path $path -Version '1.0.0' -Date '2026-05-01'
-        $updated = Get-Content -LiteralPath $path -Raw
-
-        $result.UpdatedUnreleasedLink | Should -BeNullOrEmpty
-        $result.NewReleaseCompareLink | Should -BeNullOrEmpty
-        $result.NewReleaseLink | Should -BeNullOrEmpty
-        $updated | Should -Not -Match '(?m)^\[Unreleased\]:'
-        $updated | Should -Not -Match '(?m)^\[1\.0\.0\]:'
+        Assert-OmittedFooterLinksAfterRelease -Path $path -Version '1.0.0' -Date '2026-05-01'
     }
 
     It 'keeps footer links omitted when releasing a changelog that already has releases but no footer' {
@@ -296,15 +312,7 @@ $footer
 - Previous release notes.
 '@ | Set-Content -LiteralPath $path -Encoding utf8
 
-        $result = Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30'
-        $updated = Get-Content -LiteralPath $path -Raw
-
-        $result.UpdatedUnreleasedLink | Should -BeNullOrEmpty
-        $result.NewReleaseCompareLink | Should -BeNullOrEmpty
-        $result.NewReleaseLink | Should -BeNullOrEmpty
-        $updated | Should -Match '## \[1\.6\.0\] - 2026-04-30'
-        $updated | Should -Not -Match '(?m)^\[Unreleased\]:'
-        $updated | Should -Not -Match '(?m)^\[1\.6\.0\]:'
+        Assert-OmittedFooterLinksAfterRelease -Path $path -Version '1.6.0' -Date '2026-04-30'
     }
 
     It 'uses the version as the tag and the current date when Date is omitted' {

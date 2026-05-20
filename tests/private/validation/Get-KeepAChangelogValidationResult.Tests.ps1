@@ -28,23 +28,20 @@ Describe 'Get-KeepAChangelogValidationResult' {
         )
     }
 
-    It 'keeps the generic Unreleased error when no matching heading exists' {
-        $result = Get-KeepAChangelogValidationResult -Text @'
+    It 'keeps the generic Unreleased error for <Name>' -ForEach @(
+        @{
+            Name = 'missing Unreleased headings'
+            Text = @'
 # Changelog
 
 ## [1.0.0] - 2026-05-20
 
 ### Added
 '@
-
-        $result.IsValid | Should -BeFalse
-        $result.Errors | Should -Be @(
-            'Could not find ## [Unreleased] section in CHANGELOG.md.'
-        )
-    }
-
-    It 'keeps the generic Unreleased error for unrelated headings that mention Unreleased' {
-        $result = Get-KeepAChangelogValidationResult -Text @'
+        }
+        @{
+            Name = 'unrelated headings that mention Unreleased'
+            Text = @'
 # Changelog
 
 ### Unreleased migration notes
@@ -53,6 +50,9 @@ Describe 'Get-KeepAChangelogValidationResult' {
 
 ### Added
 '@
+        }
+    ) {
+        $result = Get-KeepAChangelogValidationResult -Text $Text
 
         $result.IsValid | Should -BeFalse
         $result.Errors | Should -Be @(
