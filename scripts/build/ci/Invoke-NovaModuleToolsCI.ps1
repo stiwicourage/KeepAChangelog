@@ -71,9 +71,11 @@ $projectInfo = Get-NovaProjectInfo
 $testFailed = $false
 try {
     if (@($ExcludeTag).Count -gt 0) {
+        Invoke-NovaTest -ExcludeTagFilter $ExcludeTag
         Test-NovaBuild -ExcludeTagFilter $ExcludeTag
     }
     else {
+        Invoke-NovaTest
         Test-NovaBuild
     }
 }
