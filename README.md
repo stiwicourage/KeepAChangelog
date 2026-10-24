@@ -160,7 +160,7 @@ Run it directly with:
 This is the CI-parity script used by the main test workflow. It:
 
 1. builds the module with `Invoke-NovaBuild`
-2. runs `Test-NovaBuild` through the CI wrapper
+2. runs unit tests with `Invoke-NovaTest`, then build-validation integration tests with `Test-NovaBuild`
 3. keeps the JaCoCo coverage artifact under `artifacts/coverage.xml`
 4. copies the NUnit result into the CI artifact output directory
 

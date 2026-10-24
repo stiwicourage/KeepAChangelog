@@ -33,10 +33,11 @@ exit 1
 }
 
 Describe 'Invoke-NovaModuleToolsCI' {
-    It 'forwards ExcludeTag to Test-NovaBuild and copies the NUnit and JaCoCo artifacts to the requested output directory' {
+    It 'forwards ExcludeTag to both Nova test commands and copies the NUnit and JaCoCo artifacts to the requested output directory' {
         $projectRoot = Join-Path $TestDrive 'project'
         $outputDirectory = Join-Path $TestDrive 'artifacts-out'
         $excludeTagLogPath = Join-Path $TestDrive 'exclude-tags.txt'
+        $unitExcludeTagLogPath = Join-Path $TestDrive 'unit-exclude-tags.txt'
         $artifactsDir = Join-Path $projectRoot 'artifacts'
         $testResultPath = Join-Path $artifactsDir 'TestResults.xml'
         $coveragePath = Join-Path $artifactsDir 'coverage.xml'
@@ -55,6 +56,13 @@ function Import-Module {
 }
 
 function Invoke-NovaBuild {}
+
+function Invoke-NovaTest {
+    [CmdletBinding()]
+    param([string[]]`$ExcludeTagFilter)
+
+    Set-Content -LiteralPath '$unitExcludeTagLogPath' -Value (`$ExcludeTagFilter -join ',') -Encoding utf8
+}
 
 function Get-NovaProjectInfo {
     return [pscustomobject]@{
@@ -81,6 +89,7 @@ function Test-NovaBuild {
         $result = Invoke-NovaModuleToolsCIRunner -RunnerContent $runnerContent
 
         $result.ExitCode | Should -Be 0 -Because ($result.Output -join [Environment]::NewLine)
+        (Get-Content -LiteralPath $unitExcludeTagLogPath -Raw).Trim() | Should -Be 'slow,integration'
         (Get-Content -LiteralPath $excludeTagLogPath -Raw).Trim() | Should -Be 'slow,integration'
         (Get-Content -LiteralPath (Join-Path $outputDirectory 'keepachangelog-nunit.xml') -Raw).Trim() | Should -Be '<test-results />'
         (Get-Content -LiteralPath (Join-Path $outputDirectory 'coverage.xml') -Raw).Trim() | Should -Be '<report />'
@@ -107,6 +116,8 @@ function Import-Module {
 }
 
 function Invoke-NovaBuild {}
+
+function Invoke-NovaTest {}
 
 function Get-NovaProjectInfo {
     return [pscustomobject]@{

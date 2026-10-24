@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Fixed CI wrapper tests to isolate `Invoke-NovaTest` and verify excluded tags reach both Nova test commands without loading the real module inside test runners.
+
 ### Security
 
 ## [0.3.0] - 2026-05-20
@@ -97,4 +99,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [0.2.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/stiwicourage/KeepAChangelog/compare/103d84a...0.1.1
-
