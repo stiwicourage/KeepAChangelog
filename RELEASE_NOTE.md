@@ -44,14 +44,16 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 
 ## [0.2.4] - 2026-05-07
 ### Fixed
-- Fixed `Test-KeepAChangelogFile` so changelogs with valid `Unreleased` and dated release headings can stay valid even when they intentionally omit footer reference links.
 - Fixed `Move-UnreleasedChangelog` so changelogs that intentionally omit footer reference links can still promote `Unreleased` notes without requiring `-RepositoryUrl`.
 
 
 ## [0.2.3] - 2026-05-07
-## [0.2.2] - 2026-05-07
 ### Fixed
 - Fixed `Test-KeepAChangelogFile` so changelogs with valid `Unreleased` and dated release headings can stay valid even when they intentionally omit footer reference links.
+
+
+## [0.2.2] - 2026-05-07
+### Fixed
 - Fixed `Test-KeepAChangelogFile` so yanked release headings like `## [2.2.0] - 2026-05-06 [YANKED]` are accepted as valid Keep a Changelog release sections.
 
 
@@ -100,4 +102,4 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 [0.2.1]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/stiwicourage/KeepAChangelog/compare/0.1.1...0.1.2
-[0.1.1]: https://github.com/stiwicourage/KeepAChangelog/compare/103d84a...0.1.1
+[0.1.1]: https://github.com/stiwicourage/KeepAChangelog/releases/tag/0.1.1
