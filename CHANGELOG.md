@@ -10,14 +10,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Moved CI, release, and security scanning to the shared `stiwicourage/powershell-ci` reusable workflows, pinned to a released tag. `Tests.yml` and `Publish.yml` are now thin callers, and the former `powershell.yml`, `codeql.yml`, and `dependency-review.yml` are combined in `Security.yml`.
+- Releases now promote `## [Unreleased]` in both `CHANGELOG.md` and `RELEASE_NOTE.md` with the version and date, and create a GitHub release from the released `RELEASE_NOTE.md` section.
+- Dependabot now proposes grouped `powershell-ci` updates daily, without the default release cooldown.
+- Added the missing `[0.3.0]` section to `RELEASE_NOTE.md`, which the 0.3.0 release did not promote.
+
 ### Deprecated
 
 ### Removed
 
+- Removed the repository-local CI scripts under `scripts/build/ci/`, the local composite actions under `.github/actions/`, their tests, and the Codecov upload; `powershell-ci` now owns that behavior.
+
 ### Fixed
 
 - Fixed `Move-UnreleasedChangelog` and `Initialize-KeepAChangelogFile` writing an extra blank line at the end of the file; they now end the file with exactly one trailing newline.
-- Fixed CI wrapper tests to isolate `Invoke-NovaTest` and verify excluded tags reach both Nova test commands without loading the real module inside test runners.
 
 ### Security
 

@@ -15,7 +15,8 @@ Use this skill when adding tests, closing coverage gaps, fixing regressions, or 
 - `tests/*TestSupport.ps1`
 - `Test-NovaBuild`
 - the repository quality loop, when present
-- `./scripts/build/ci/Invoke-KeepAChangelogCI.ps1 -OutputDirectory ./artifacts`
+- `Invoke-NovaTest` (the shared `powershell-ci` test workflow runs it, then `Test-NovaBuild`)
+- `tests/repository/SharedCiContracts.Tests.ps1` for the repository's `powershell-ci` caller contract
 
 ## Expected practices
 
