@@ -1,5 +1,6 @@
 function Get-KeepAChangelogRuntimeDefinedParameter {
     [CmdletBinding()]
+    [OutputType([System.Management.Automation.RuntimeDefinedParameter])]
     param(
         [Parameter(Mandatory)]
         [string]$Name,
@@ -25,6 +26,7 @@ function Get-KeepAChangelogRuntimeDefinedParameter {
 
 function Get-KeepAChangelogRepositoryProviderParameterDictionary {
     [CmdletBinding()]
+    [OutputType([System.Management.Automation.RuntimeDefinedParameterDictionary])]
     param(
         [switch]$IncludeReleaseReference,
         [switch]$IncludeRepositoryTargetReference

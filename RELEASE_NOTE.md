@@ -7,11 +7,6 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 
 ### Added
 
-- Added provider-aware footer-link support so `Initialize-KeepAChangelogFile` and `Move-UnreleasedChangelog` can generate GitHub, GitLab, and Azure DevOps footer links with explicit provider hints when needed.
-  - Use `-RepositoryProvider GitLab` for self-hosted GitLab repository URLs.
-  - Use `-RepositoryProvider AzureDevOps` together with `-RepositoryTargetReference`, and `-ReleaseReference` on release moves when the Azure release ref differs from the visible version.
-  - `Test-KeepAChangelogFile` now accepts Azure DevOps `branchCompare` footer links in addition to GitHub and GitLab compare links.
-
 ### Changed
 
 ### Deprecated
@@ -20,10 +15,22 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 
 ### Fixed
 
-- Fixed the GitHub Actions CodeScene coverage workflow to use the JaCoCo `artifacts/coverage.xml` artifact produced by the current test flow.
-- Improved `Test-KeepAChangelogFile` diagnostics so obvious but invalid `Unreleased` heading variants now report the found heading and the expected `## [Unreleased]` format.
+- `Move-UnreleasedChangelog` and `Initialize-KeepAChangelogFile` no longer add an extra blank line at the end of the file, so release commits keep exactly one trailing newline.
 
 ### Security
+
+## [0.3.0] - 2026-05-20
+
+### Added
+
+- Added provider-aware footer-link support so `Initialize-KeepAChangelogFile` and `Move-UnreleasedChangelog` can generate GitHub, GitLab, and Azure DevOps footer links with explicit provider hints when needed.
+  - Use `-RepositoryProvider GitLab` for self-hosted GitLab repository URLs.
+  - Use `-RepositoryProvider AzureDevOps` together with `-RepositoryTargetReference`, and `-ReleaseReference` on release moves when the Azure release ref differs from the visible version.
+  - `Test-KeepAChangelogFile` now accepts Azure DevOps `branchCompare` footer links in addition to GitHub and GitLab compare links.
+
+### Fixed
+
+- Improved `Test-KeepAChangelogFile` diagnostics so obvious but invalid `Unreleased` heading variants now report the found heading and the expected `## [Unreleased]` format.
 
 ## [0.2.5] - 2026-05-15
 
@@ -79,7 +86,8 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 - Created command `Initialize-KeepAChangelogFile`, allowed without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
 - Created command `Move-UnreleasedChangelog`, `-Version` is required release input, and `-Date` is optional with `yyyy-MM-dd` validation.
 
-[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.5...HEAD
+[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.5...0.3.0
 [0.2.5]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.3...0.2.4
 [0.2.3]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.2...0.2.3

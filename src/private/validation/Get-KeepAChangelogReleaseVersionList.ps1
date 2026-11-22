@@ -1,5 +1,6 @@
 function Get-KeepAChangelogReleaseVersionList {
     [CmdletBinding()]
+    [OutputType([object[]])]
     param(
         [Parameter(Mandatory)]
         [string]$Body,

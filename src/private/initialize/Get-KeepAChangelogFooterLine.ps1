@@ -1,5 +1,6 @@
 function Get-KeepAChangelogFooterLine {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [pscustomobject]$RepositoryState,

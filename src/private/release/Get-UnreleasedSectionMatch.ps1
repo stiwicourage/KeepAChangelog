@@ -1,5 +1,6 @@
 function Get-UnreleasedSectionMatch {
     [CmdletBinding()]
+    [OutputType([System.Text.RegularExpressions.Match])]
     param(
         [Parameter(Mandatory)]
         [string]$Text

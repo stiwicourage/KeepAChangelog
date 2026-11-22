@@ -1,5 +1,6 @@
 function Get-TrimmedChangelogTagMessageLineList {
     [CmdletBinding()]
+    [OutputType([System.Collections.Generic.List[System.String]])]
     param(
         [Parameter(Mandatory)]
         [AllowEmptyCollection()]

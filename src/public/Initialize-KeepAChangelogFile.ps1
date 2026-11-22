@@ -39,7 +39,7 @@ function Initialize-KeepAChangelogFile {
             return
         }
 
-        Set-Content -LiteralPath $Path -Value $template -Encoding utf8
+        Set-Content -LiteralPath $Path -Value $template -Encoding utf8 -NoNewline
 
         return [pscustomobject]@{
             Path                     = $Path

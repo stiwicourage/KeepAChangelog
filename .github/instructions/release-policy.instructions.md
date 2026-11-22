@@ -26,10 +26,11 @@ Use this file when changing versioning, changelog handling, package metadata, pu
 
 ## Workflow rules
 
-- `Publish.yml` owns the release/publish flow.
+- `Publish.yml` owns the release/publish flow by calling the pinned `stiwicourage/powershell-ci` `publish.yml`.
+- The shared publisher promotes `## [Unreleased]` in both `CHANGELOG.md` and `RELEASE_NOTE.md` with the release version and date, and uses the released `RELEASE_NOTE.md` section as the GitHub release text.
 - `main` handles stable release commit/tag flow and prepares `develop` for the next prerelease.
 - `develop` handles prerelease publish and next-prerelease bump flow.
-- Do not change branch mutation behavior, tag creation, or publish steps without reading release workflow files, when present and the related custom actions first.
+- Do not change branch mutation behavior, tag creation, or publish steps without reading the caller workflows and the `powershell-ci` reusable workflows and actions they call first.
 
 ## Documentation rules
 

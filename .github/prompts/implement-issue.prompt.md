@@ -15,7 +15,7 @@ Implement the issue in the KeepAChangelog repository using the repository-local 
 1. If scope, acceptance criteria, or ownership are still unclear, start with `.github/prompts/design-change.prompt.md` and `architect.agent.md` before implementing.
 2. Read `README.md`, `CONTRIBUTING.md`, `.github/copilot-instructions.md`, and `.github/pull_request_template.md`.
 3. Inspect the relevant public command, matching private helper domain, tests, and docs.
-4. If the issue is release-, workflow-, or coverage-related, also inspect the matching workflow files, when present and `scripts/build/ci/*.ps1` files.
+4. If the issue is release-, workflow-, or coverage-related, also inspect the thin workflow callers in `.github/workflows/` and the reusable workflows they call in `stiwicourage/powershell-ci`; change shared CI behavior upstream, not with local copies.
 5. Preserve the Nova build model: use `project.json` and Nova commands for build/test/package/release behavior, and do not create hand-written source `.psm1` or module `.psd1` files.
 6. Inspect `project.json` `Manifest.PowerShellHostVersion` before changing PowerShell code, tests, or examples, and keep the implementation compatible with that target.
 7. Implement the smallest maintainable fix.

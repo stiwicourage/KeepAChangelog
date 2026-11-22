@@ -38,8 +38,8 @@ This `README.md` is for **maintainers and contributors**. The GitHub Pages site 
 | `src/private/` | Internal helpers grouped by concern under `initialize/`, `validation/`, `release/`, and `shared/` |
 | `tests/` | Pester coverage and behavior tests |
 | `scripts/build/` | Maintainer-run quality scripts such as ScriptAnalyzer |
-| `scripts/build/ci/` | CI-parity scripts for build, test, coverage, and CodeScene upload |
-| `.github/workflows/` | GitHub Actions workflows for tests, analysis, publish, and security scanning |
+| `.github/workflows/` | Thin callers of the shared [`powershell-ci`](https://github.com/stiwicourage/powershell-ci) reusable workflows for tests, publish, and security scanning |
+| `.github/dependabot.yml` | Daily Dependabot updates for the pinned `powershell-ci` release tag |
 | `docs/` | End-user site, external help input, and spec docs |
 | `artifacts/` | Generated reports from local and CI validation runs |
 | `dist/` | Built module output produced by NovaModuleTools |
@@ -49,12 +49,11 @@ This `README.md` is for **maintainers and contributors**. The GitHub Pages site 
 | Tool | Why it is used | How maintainers use it |
 | --- | --- | --- |
 | `NovaModuleTools` | Builds the module, generates the manifest/help, runs the standard Nova workflows, and drives package/release automation | Run `Invoke-NovaBuild`, `Test-NovaBuild`, `Publish-NovaModule`, `Invoke-NovaRelease`, or the `nova` CLI equivalents |
-| `Pester` | Behavior tests and coverage generation | Run `Test-NovaBuild` or `./scripts/build/ci/Invoke-NovaModuleToolsCI.ps1` |
+| `Pester` | Behavior tests and coverage generation | Run `Invoke-NovaTest`, then `Test-NovaBuild` |
 | `PSScriptAnalyzer` | Static analysis for PowerShell source, scripts, and manifest files | Run `./scripts/build/Invoke-ScriptAnalyzerCI.ps1` |
-| `CodeScene` | Coverage gates in PRs, repository analysis in CI, and file-level Code Health review | Use the CodeScene UI / IDE integration for file health checks, and `./scripts/build/ci/Invoke-CodeSceneAnalysis.ps1` for coverage upload and analysis triggering |
-| `Codecov` | Publishes JaCoCo coverage from CI | Maintainers normally interact with it through the `Run Tests` workflow |
-| `CodeQL` | Security and code scanning on the GitHub Actions layer | Maintainers monitor the `CodeQL Advanced` workflow and resulting alerts |
-| `dependency-review-action` | Blocks PRs that introduce vulnerable dependency updates | Maintainers review the `Dependency review` workflow result on pull requests |
+| `CodeScene` | Coverage gates in PRs, repository analysis in CI, and file-level Code Health review | Use the CodeScene UI / IDE integration for file health checks, while the shared `Run Tests` workflow handles coverage gates, coverage upload, and analysis triggering |
+| `CodeQL` | Security and code scanning on the GitHub Actions layer | Maintainers monitor the `Security` workflow and resulting alerts |
+| `dependency-review-action` | Blocks PRs that introduce vulnerable dependency updates | Maintainers review the `Security` workflow dependency-review result on pull requests |
 | GitHub Pages | Hosts the user guide at `keepachangelog.ps` | Maintain `docs/index.html`, `docs/assets/`, and related site content |
 | PowerShell Gallery | Distribution target for stable and prerelease packages | Publishing is handled by the `Publish Module` workflow and the Nova release/publish commands |
 
@@ -141,13 +140,16 @@ Use that check before changing release notes or release automation.
 
 ### `scripts/build/Invoke-ScriptAnalyzerCI.ps1`
 
-Runs `PSScriptAnalyzer` against:
+Runs the shared `powershell-ci` analyzer with the same settings as CI against:
 
 - `src/`
 - `scripts/`
+- `tests/`
 - `run.ps1`
 
-By default it ignores generated files under `dist/` and `artifacts/`. It writes the result to `artifacts/scriptanalyzer.txt` and throws if there are warnings or errors.
+Every severity, including `Information`, fails the gate; only `PSAvoidUsingWriteHost` is excluded. Generated files under `dist/` and `artifacts/` are ignored. The result is written to `artifacts/scriptanalyzer.txt`.
+
+The wrapper needs a `powershell-ci` checkout next to this repository, or its path in `POWERSHELL_CI_PATH`.
 
 Run it directly with:
 
@@ -155,51 +157,19 @@ Run it directly with:
 ./scripts/build/Invoke-ScriptAnalyzerCI.ps1
 ```
 
-### `scripts/build/ci/Invoke-NovaModuleToolsCI.ps1`
+### Shared CI from `powershell-ci`
 
-This is the CI-parity script used by the main test workflow. It:
+CI build, test, coverage, changelog validation, CodeScene upload, release, and security scanning come from the reusable workflows in [`stiwicourage/powershell-ci`](https://github.com/stiwicourage/powershell-ci). This repository keeps only the thin callers in `.github/workflows/`, pinned to a released `powershell-ci` tag. Dependabot proposes a grouped `powershell-ci` update every day, without the default release cooldown.
 
-1. builds the module with `Invoke-NovaBuild`
-2. runs `Test-NovaBuild` through the CI wrapper
-3. keeps the JaCoCo coverage artifact under `artifacts/coverage.xml`
-4. copies the NUnit result into the CI artifact output directory
-
-Run it locally with:
+To reproduce the CI test run locally:
 
 ```powershell
-./scripts/build/ci/Invoke-NovaModuleToolsCI.ps1 -OutputDirectory ./artifacts
+Invoke-NovaBuild
+Invoke-NovaTest
+Test-NovaBuild
 ```
 
-Expected artifacts include:
-
-- `artifacts/pester-junit.xml`
-- `artifacts/coverage.xml`
-- `artifacts/keepachangelog-nunit.xml`
-
-### `scripts/build/ci/Invoke-CodeSceneAnalysis.ps1`
-
-Use this after the CI helper has produced JaCoCo coverage and when you want to upload coverage or trigger a CodeScene analysis manually.
-
-Requirements:
-
-- `cs-coverage` must be available on `PATH`
-- `CS_URL`, `CS_PROJECT_ID`, and `CS_ACCESS_TOKEN` must be set
-
-Typical usage:
-
-```powershell
-./scripts/build/ci/Invoke-CodeSceneAnalysis.ps1 -UploadCoverage -TriggerAnalysis
-```
-
-What to expect:
-
-- coverage upload uses `artifacts/coverage.xml` unless you pass `-CoveragePath`
-- the script throws on missing configuration, missing coverage, upload failure, or most API failures
-- CodeScene rate-limit responses are downgraded to a warning so the job can continue
-
-### `scripts/build/ci/Install-CiPowerShellModules.ps1`
-
-This installs the CI PowerShell dependencies from PSGallery and is mainly intended for GitHub Actions runners. Maintainers usually install dependencies manually, but this script is the authoritative CI bootstrap behavior.
+Expected artifacts include `artifacts/coverage.xml` (JaCoCo) and the Nova test results.
 
 ## Code Health expectations
 
@@ -215,7 +185,7 @@ The current release-readiness target for `1.0.0` is that the `src/` PowerShell f
 CodeScene is used in two different ways:
 
 1. **file-level maintainability review** using the CodeScene product / IDE integration
-2. **CI-level coverage and repository analysis** using the helper scripts and workflows in this repository
+2. **CI-level coverage and repository analysis** using the shared `powershell-ci` workflows
 
 If a file drops below `10.0`, treat that as release-blocking work for the `1.0.0` line.
 
@@ -223,23 +193,22 @@ If a file drops below `10.0`, treat that as release-blocking work for the `1.0.0
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `Run Tests` (`.github/workflows/Tests.yml`) | pushes except `main`, PRs to `main` and `develop`, schedule, manual dispatch | Build, test, coverage, changelog validation, Codecov upload, CodeScene coverage gates, and optional CodeScene analysis |
-| `Publish Module` (`.github/workflows/Publish.yml`) | pushes to `main`, manual dispatch | Stable release on `main`, release tagging, changelog promotion, and prerelease-prep commits |
-| `PSScriptAnalyzer` (`.github/workflows/powershell.yml`) | pushes to `develop`, PRs to `develop`, schedule | GitHub-hosted static analysis with SARIF upload |
-| `CodeQL Advanced` (`.github/workflows/codeql.yml`) | pushes to `develop`, PRs to `develop`, schedule | GitHub code scanning |
-| `Dependency review` (`.github/workflows/dependency-review.yml`) | PRs to `develop` | Blocks vulnerable dependency changes |
+| `Run Tests` (`.github/workflows/Tests.yml`) | pushes except `main`, PRs to `main` and `develop`, schedule, manual dispatch | Calls `powershell-ci` `tests.yml`: analyzer, build, test, coverage, `CHANGELOG.md` and `RELEASE_NOTE.md` validation, CodeScene coverage gates, and CodeScene analysis |
+| `Publish Module` (`.github/workflows/Publish.yml`) | pushes to `main`, manual dispatch | Calls `powershell-ci` `publish.yml`: stable release, changelog and release-note promotion, release tag, GitHub release, and prerelease-prep commits |
+| `Security` (`.github/workflows/Security.yml`) | pushes to `develop`, PRs to `develop`, weekly schedule | Calls `powershell-ci` CodeQL, PSScriptAnalyzer SARIF, and PR-only dependency review |
 
 ## Release and branch workflow
 
-`CHANGELOG.md` is the release-note source of truth. The release automation expects `## [Unreleased]` to remain in place and promotes it during release.
+`CHANGELOG.md` is the exhaustive change record and `RELEASE_NOTE.md` is the user-facing summary. The release automation expects `## [Unreleased]` in both files and promotes both to the released version and date.
 
 Stable release path:
 
 - a push to `main` triggers `Publish Module`
 - the workflow builds and tests
 - `Invoke-NovaRelease` publishes the module
-- `Move-UnreleasedChangelog` writes the released changelog section and tag message
+- `Move-UnreleasedChangelog` promotes `CHANGELOG.md` and `RELEASE_NOTE.md` and writes the tag message
 - the workflow creates the verified release commit and annotated tag
+- the workflow creates a GitHub release whose text is the released `RELEASE_NOTE.md` section
 
 Post-release follow-up:
 
@@ -269,6 +238,7 @@ When you change this repository:
 - update `docs/index.html` or related site assets if the end-user experience changed
 - update `docs/KeepAChangelog/en-US/` if command help changed
 - update `CHANGELOG.md` when the change matters to users, maintainers, or future contributors
+- update `RELEASE_NOTE.md` when public commands, parameters, or user-facing behavior change
 
 For changelog entries:
 

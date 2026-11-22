@@ -1,5 +1,6 @@
 function Test-KeepAChangelogHasUnreleasedSection {
     [CmdletBinding()]
+    [OutputType([bool])]
     param(
         [Parameter(Mandatory)]
         [string]$Body

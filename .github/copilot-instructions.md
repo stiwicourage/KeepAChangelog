@@ -23,7 +23,7 @@ For new or not-yet-scoped work, use the `architect` agent with `.github/prompts/
 - `src/private/` — domain-grouped helpers (`build/`, `cli/`, `package/`, `quality/`, `release/`, `scaffold/`, `shared/`, `update/`); one externally called helper per file
 - `tests/` — Pester tests and shared test-support scripts
 - `scripts/build/` — local analyzer and build helpers
-- `scripts/build/ci/` — CI coverage, quality tooling, and artifact helpers
+- `.github/workflows/` — thin callers of the shared `stiwicourage/powershell-ci` reusable workflows; CI logic lives upstream
 - workflow files, when present — GitHub Actions CI, analyzer, dependency review, publish automation
 - reusable workflow actions, when present — reusable workflow actions used by release and coverage flows
 - `docs/KeepAChangelog/en-US/` — PlatyPS command help source

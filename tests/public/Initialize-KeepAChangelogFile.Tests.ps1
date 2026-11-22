@@ -1,6 +1,6 @@
 BeforeAll {
-    . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Get-KeepAChangelogProjectRoot.ps1')
-    . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Import-KeepAChangelogSourceFile.ps1')
+    . (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'TestHelpers', 'Get-KeepAChangelogProjectRoot.ps1')
+    . (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'TestHelpers', 'Import-KeepAChangelogSourceFile.ps1')
 
     $projectRoot = Get-KeepAChangelogProjectRoot -StartPath $PSScriptRoot
     Import-KeepAChangelogSourceFile -ProjectRoot $projectRoot -RelativePath @(
@@ -98,6 +98,15 @@ Describe 'Initialize-KeepAChangelogFile' {
         $result.PreviousReleaseReference | Should -BeNullOrEmpty
         $text | Should -Match '## \[Unreleased\]'
         $text | Should -Not -Match '(?m)^\[Unreleased\]:'
+    }
+
+    It 'writes the changelog template with exactly one trailing newline' {
+        $path = Join-Path $TestDrive 'CHANGELOG-trailing-newline.md'
+
+        Initialize-KeepAChangelogFile -Path $path -RepositoryUrl 'https://github.com/example/repo' -Force | Out-Null
+        $text = [System.IO.File]::ReadAllText($path)
+
+        $text | Should -Match '[^\r\n]\n\z'
     }
 
     It 'accepts develop as PreviousReleaseReference for projects without tags yet' {

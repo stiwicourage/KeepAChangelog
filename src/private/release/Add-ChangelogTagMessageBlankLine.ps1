@@ -1,5 +1,6 @@
 function Add-ChangelogTagMessageBlankLine {
     [CmdletBinding()]
+    [OutputType([bool])]
     param(
         [Parameter(Mandatory)]
         [object]$LineList,
