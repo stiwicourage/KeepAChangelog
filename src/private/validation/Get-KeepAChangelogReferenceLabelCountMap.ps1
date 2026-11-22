@@ -1,5 +1,6 @@
 function Get-KeepAChangelogReferenceLabelCountMap {
     [CmdletBinding()]
+    [OutputType([hashtable])]
     param(
         [AllowEmptyString()]
         [string]$Footer

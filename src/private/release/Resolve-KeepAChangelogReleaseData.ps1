@@ -92,6 +92,7 @@ function Get-KeepAChangelogRepositoryContext {
 
 function Get-KeepAChangelogSectionText {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [string]$Heading,

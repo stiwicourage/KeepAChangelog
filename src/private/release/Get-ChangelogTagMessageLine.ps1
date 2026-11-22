@@ -1,5 +1,6 @@
 function Get-ChangelogTagMessageLine {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [string]$TrimmedLine

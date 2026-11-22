@@ -1,5 +1,6 @@
 function Get-ChangelogReleaseNotesBody {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [AllowEmptyString()]

@@ -1,5 +1,6 @@
 function Get-ClearedUnreleasedBody {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [AllowEmptyString()]

@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Moved CI, release, and security scanning to the shared `stiwicourage/powershell-ci` reusable workflows, pinned to a released tag. `Tests.yml` and `Publish.yml` are now thin callers, and the former `powershell.yml`, `codeql.yml`, and `dependency-review.yml` are combined in `Security.yml`.
+- `./scripts/build/Invoke-ScriptAnalyzerCI.ps1` now delegates to the shared `powershell-ci` analyzer with the CI settings, so local runs and CI analyze `src/`, `scripts/`, `tests/`, and `run.ps1` and fail on every severity, including `Information`. It needs a `powershell-ci` checkout next to the repository or `POWERSHELL_CI_PATH`, and its `-IncludeTests` switch was removed.
+- Functions now declare their return types with `[OutputType()]`, and commands use named parameters, so the code passes every PSScriptAnalyzer rule except `PSAvoidUsingWriteHost`.
 - Releases now promote `## [Unreleased]` in both `CHANGELOG.md` and `RELEASE_NOTE.md` with the version and date, and create a GitHub release from the released `RELEASE_NOTE.md` section.
 - Dependabot now proposes grouped `powershell-ci` updates daily, without the default release cooldown.
 - Added the missing `[0.3.0]` section to `RELEASE_NOTE.md`, which the 0.3.0 release did not promote.

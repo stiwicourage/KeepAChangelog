@@ -28,6 +28,7 @@ function Get-ChangelogReferenceLinkData {
 
 function Get-ChangelogReleaseLink {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [pscustomobject]$Context,

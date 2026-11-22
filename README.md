@@ -140,13 +140,16 @@ Use that check before changing release notes or release automation.
 
 ### `scripts/build/Invoke-ScriptAnalyzerCI.ps1`
 
-Runs `PSScriptAnalyzer` against:
+Runs the shared `powershell-ci` analyzer with the same settings as CI against:
 
 - `src/`
 - `scripts/`
+- `tests/`
 - `run.ps1`
 
-By default it ignores generated files under `dist/` and `artifacts/`. It writes the result to `artifacts/scriptanalyzer.txt` and throws if there are warnings or errors.
+Every severity, including `Information`, fails the gate; only `PSAvoidUsingWriteHost` is excluded. Generated files under `dist/` and `artifacts/` are ignored. The result is written to `artifacts/scriptanalyzer.txt`.
+
+The wrapper needs a `powershell-ci` checkout next to this repository, or its path in `POWERSHELL_CI_PATH`.
 
 Run it directly with:
 

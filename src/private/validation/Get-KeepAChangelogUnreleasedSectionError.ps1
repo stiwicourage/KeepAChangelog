@@ -1,5 +1,6 @@
 function Get-KeepAChangelogUnreleasedSectionError {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [string]$Body
@@ -35,6 +36,7 @@ function Find-KeepAChangelogNearUnreleasedSectionHeading {
 
 function Get-KeepAChangelogHeadingCandidateList {
     [CmdletBinding()]
+    [OutputType([object[]])]
     param(
         [Parameter(Mandatory)]
         [string]$Body

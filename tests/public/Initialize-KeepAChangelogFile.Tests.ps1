@@ -1,6 +1,6 @@
 BeforeAll {
-    . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Get-KeepAChangelogProjectRoot.ps1')
-    . (Join-Path $PSScriptRoot '..' 'TestHelpers' 'Import-KeepAChangelogSourceFile.ps1')
+    . (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'TestHelpers', 'Get-KeepAChangelogProjectRoot.ps1')
+    . (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'TestHelpers', 'Import-KeepAChangelogSourceFile.ps1')
 
     $projectRoot = Get-KeepAChangelogProjectRoot -StartPath $PSScriptRoot
     Import-KeepAChangelogSourceFile -ProjectRoot $projectRoot -RelativePath @(

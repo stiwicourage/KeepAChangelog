@@ -20,9 +20,10 @@ BeforeAll {
 }
 
 Describe 'KeepAChangelog shared CI consumer contracts' {
-    It 'uses the pinned shared test workflow with the common analyzer version' {
+    It 'uses the pinned shared test workflow with the common analyzer version and every severity gated' {
         $script:testsWorkflow | Should -Match "uses: stiwicourage/powershell-ci/\.github/workflows/tests\.yml$script:pinnedReference"
         $script:testsWorkflow | Should -Match "script-analyzer-required-version: '1\.25\.0'"
+        $script:testsWorkflow | Should -Not -Match 'script-analyzer-severity' -Because 'every analyzer severity must fail the gate'
         $script:testsWorkflow | Should -Match 'secrets: inherit'
         $script:testsWorkflow | Should -Not -Match 'runs-on:|scripts/build/ci|codecov'
     }

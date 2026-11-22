@@ -20,7 +20,7 @@ Use this file when changing PowerShell code, tests, build helpers, or analyzer w
     - full local loop: the repository quality wrapper, when present
 2. Use raw `Invoke-ScriptAnalyzer` only for focused local investigation or when you are deliberately changing analyzer tooling.
 3. When you call `Invoke-ScriptAnalyzer` directly, point it at real `.ps1`, `.psm1`, or `.psd1` paths, use `-Recurse` when analyzing a directory, and reuse the repository-approved analyzer settings through `-Settings` instead of inventing a new rule selection.
-4. Treat `Error`, `Warning`, and `ParseError` diagnostics as findings to fix before handoff. Parser errors are analyzer diagnostics too and are not something to suppress away.
+4. Treat every diagnostic, including `Information`, as a finding to fix before handoff. Parser errors are analyzer diagnostics too and are not something to suppress away.
 5. Do not add ad hoc `ExcludeRule`, `ExcludeRules`, `SuppressMessageAttribute`, or custom settings changes just to make the analyzer pass. Only keep analyzer exceptions that the repository already approves and can justify narrowly.
 6. `Invoke-ScriptAnalyzer -Fix` is optional and only applies to selected rules. Review every change it would make, prefer `-WhatIf` first, and inspect the diff afterwards.
 7. `Invoke-ScriptAnalyzer -EnableExit` is useful for CI shells, but if the repository already has a wrapper with established failure semantics, do not replace that wrapper with an ad hoc direct invocation.

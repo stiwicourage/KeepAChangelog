@@ -1,8 +1,9 @@
 function Read-KeepAChangelogProjectVersion {
     [CmdletBinding()]
+    [OutputType([string])]
     param()
 
-    $projectJsonPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..' '..' '..' 'project.json'))
+    $projectJsonPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '..', '..', 'project.json'))
     $project = Get-Content -LiteralPath $projectJsonPath -Raw | ConvertFrom-Json
     return [string]$project.Version
 }
