@@ -10,14 +10,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.4.0] - 2026-11-22
+
+### Changed
+
 - Moved CI, release, and security scanning to the shared `stiwicourage/powershell-ci` reusable workflows, pinned to a released tag. `Tests.yml` and `Publish.yml` are now thin callers, and the former `powershell.yml`, `codeql.yml`, and `dependency-review.yml` are combined in `Security.yml`.
 - `./scripts/build/Invoke-ScriptAnalyzerCI.ps1` now delegates to the shared `powershell-ci` analyzer with the CI settings, so local runs and CI analyze `src/`, `scripts/`, `tests/`, and `run.ps1` and fail on every severity, including `Information`. It needs a `powershell-ci` checkout next to the repository or `POWERSHELL_CI_PATH`, and its `-IncludeTests` switch was removed.
 - Functions now declare their return types with `[OutputType()]`, and commands use named parameters, so the code passes every PSScriptAnalyzer rule except `PSAvoidUsingWriteHost`.
 - Releases now promote `## [Unreleased]` in both `CHANGELOG.md` and `RELEASE_NOTE.md` with the version and date, and create a GitHub release from the released `RELEASE_NOTE.md` section.
 - Dependabot now proposes grouped `powershell-ci` updates daily, without the default release cooldown.
 - Added the missing `[0.3.0]` section to `RELEASE_NOTE.md`, which the 0.3.0 release did not promote.
-
-### Deprecated
 
 ### Removed
 
@@ -26,8 +36,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 
 - Fixed `Move-UnreleasedChangelog` and `Initialize-KeepAChangelogFile` writing an extra blank line at the end of the file; they now end the file with exactly one trailing newline.
-
-### Security
 
 ## [0.3.0] - 2026-05-20
 
@@ -98,7 +106,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Created command `Initialize-KeepAChangelogFile`, allowed without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
 - Created command `Move-UnreleasedChangelog`, `-Version` is required release input, and `-Date` is optional with `yyyy-MM-dd` validation.
 
-[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.3.0...HEAD
+[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.5...0.3.0
 [0.2.5]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.3...0.2.4

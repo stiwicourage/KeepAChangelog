@@ -15,9 +15,13 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 
 ### Fixed
 
-- `Move-UnreleasedChangelog` and `Initialize-KeepAChangelogFile` no longer add an extra blank line at the end of the file, so release commits keep exactly one trailing newline.
-
 ### Security
+
+## [0.4.0] - 2026-11-22
+
+### Fixed
+
+- `Move-UnreleasedChangelog` and `Initialize-KeepAChangelogFile` no longer add an extra blank line at the end of the file, so release commits keep exactly one trailing newline.
 
 ## [0.3.0] - 2026-05-20
 
@@ -86,7 +90,8 @@ This file summarizes public cmdlet, CLI, configuration, and migration changes fo
 - Created command `Initialize-KeepAChangelogFile`, allowed without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
 - Created command `Move-UnreleasedChangelog`, `-Version` is required release input, and `-Date` is optional with `yyyy-MM-dd` validation.
 
-[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.3.0...HEAD
+[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.5...0.3.0
 [0.2.5]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.3...0.2.4
