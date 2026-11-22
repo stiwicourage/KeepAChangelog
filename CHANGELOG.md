@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Security
 
+## [0.4.1] - 2026-11-22
+
 ## [0.4.0] - 2026-11-22
 
 ### Changed
@@ -111,7 +113,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Created command `Initialize-KeepAChangelogFile`, allowed without `-PreviousReleaseReference`, and documented `main` and `develop` as valid previous refs.
 - Created command `Move-UnreleasedChangelog`, `-Version` is required release input, and `-Date` is optional with `yyyy-MM-dd` validation.
 
-[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.4.0...HEAD
+[Unreleased]: https://github.com/stiwicourage/KeepAChangelog/compare/0.4.1...HEAD
+[0.4.1]: https://github.com/stiwicourage/KeepAChangelog/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.5...0.3.0
 [0.2.5]: https://github.com/stiwicourage/KeepAChangelog/compare/0.2.4...0.2.5
