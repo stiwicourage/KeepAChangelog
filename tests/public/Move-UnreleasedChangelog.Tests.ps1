@@ -205,6 +205,21 @@ $footer
         $updated | Should -Match '(?s)## \[1\.6\.0\] - 2026-04-30\s+- Fixed CLI parsing\.'
     }
 
+    It 'writes the promoted changelog with exactly one trailing newline' {
+        $path = Join-Path $TestDrive 'CHANGELOG-trailing-newline.md'
+        Set-ReleaseReadyChangelog -Path $path -LatestRelease ([pscustomobject]@{
+                Version         = '1.5.0'
+                PreviousVersion = '1.4.0'
+                Date            = '2026-04-10'
+                Note            = '- Previous release notes.'
+            })
+
+        Move-UnreleasedChangelog -Path $path -Version '1.6.0' -Date '2026-04-30' | Out-Null
+        $updated = [System.IO.File]::ReadAllText($path)
+
+        $updated | Should -Match '[^\r\n]\n\z'
+    }
+
     It 'does not duplicate an existing release compare link' {
         $path = Join-Path $TestDrive 'CHANGELOG.md'
 

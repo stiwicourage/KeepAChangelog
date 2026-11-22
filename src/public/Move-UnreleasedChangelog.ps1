@@ -54,7 +54,7 @@ function Move-UnreleasedChangelog {
             return $result
         }
 
-        Set-Content -LiteralPath $Path -Value $result.UpdatedText -Encoding utf8
+        Set-Content -LiteralPath $Path -Value $result.UpdatedText -Encoding utf8 -NoNewline
         return $result
     }
 }

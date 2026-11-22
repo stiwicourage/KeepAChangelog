@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Fixed `Move-UnreleasedChangelog` and `Initialize-KeepAChangelogFile` writing an extra blank line at the end of the file; they now end the file with exactly one trailing newline.
 - Fixed CI wrapper tests to isolate `Invoke-NovaTest` and verify excluded tags reach both Nova test commands without loading the real module inside test runners.
 
 ### Security
